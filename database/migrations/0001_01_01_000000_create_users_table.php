@@ -2,6 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -14,10 +16,16 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('email')->unique()->nullable();
+            $table->string('phone')->nullable()->unique();
+            $table->string('avatar')->nullable();
+            $table->bigInteger('role_id')->default(1);
+            $table->boolean('is_active')->default(1);
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password')->nullable();
+            $table->bigInteger('operational_number')->nullable()->unique();
             $table->rememberToken();
+            $table->softDeletes();
             $table->timestamps();
         });
 
@@ -35,6 +43,16 @@ return new class extends Migration
             $table->longText('payload');
             $table->integer('last_activity')->index();
         });
+
+        DB::table('users')->insert([
+            [
+                'name' => 'Admin',
+                'email' => 'admin@admin.com',
+                'phone' => '1234567890',
+                'password' => Hash::make('123456'),
+                'role_id' => 2,
+            ],
+        ]);
     }
 
     /**
