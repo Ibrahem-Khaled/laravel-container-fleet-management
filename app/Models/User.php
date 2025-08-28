@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Traits\FiltersByRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -13,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes; // أضف هذا
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes, FiltersByRole;
 
     protected $guarded = ['id'];
 
@@ -38,7 +40,7 @@ class User extends Authenticatable
 
     public function car(): HasOne
     {
-        return $this->hasOne(Car::class);
+        return $this->hasOne(Car::class, 'driver_id');
     }
 
     public function role()
@@ -50,6 +52,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(CustomsDeclaration::class, 'clearance_office_id');
     }
+    public function drivingTips()
+    {
+        return $this->hasMany(Tip::class, 'driver_id');
+    }
+
+
 
     ///this accessors functions
     public function getTotalIncome(?string $startDate = null, ?string $endDate = null): float

@@ -48,7 +48,7 @@ return new class extends Migration
             [
                 'name' => 'Admin',
                 'email' => 'admin@admin.com',
-                'phone' => '1234567890',
+                'phone' => '01234567890',
                 'password' => Hash::make('123456'),
                 'role_id' => 2,
             ],

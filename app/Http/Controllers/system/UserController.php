@@ -7,7 +7,6 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 
 class UserController extends Controller
 {
@@ -67,7 +66,7 @@ class UserController extends Controller
             'email' => 'nullable|string|email|max:255|unique:users',
             'phone' => 'required|string|max:20|unique:users',
             'role_id' => 'required|exists:roles,id',
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => 'required|confirmed|min:6',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'is_active' => 'required|boolean',
         ]);
@@ -94,7 +93,7 @@ class UserController extends Controller
             'email' => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
             'role_id' => 'required|exists:roles,id',
-            'password' => ['nullable', 'confirmed', Password::min(8)],
+            'password' => 'required|confirmed|min:6',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'is_active' => 'required|boolean',
         ]);

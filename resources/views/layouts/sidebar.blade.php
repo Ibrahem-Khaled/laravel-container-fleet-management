@@ -38,6 +38,31 @@
         </a>
     </li>
 
+
+    {{-- ادارة السيارات --}}
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCars"
+            aria-expanded="true" aria-controls="collapseCars">
+            <i class="fas fa-fw fa-car"></i>
+            <span>ادارة السيارات</span>
+        </a>
+        <div id="collapseCars" class="collapse" aria-labelledby="headingCars" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <a class="collapse-item" href="{{ route('cars.index') }}">عرض السيارات</a>
+                <a class="collapse-item" href="#">ادارة الزيوت وصيانات</a>
+            </div>
+        </div>
+    </li>
+
+    </a>
+    <div id="company" class="collapse" aria-labelledby="headingOperations" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <a class="collapse-item" href="#">ادارة شؤون الشركة والشركاء</a>
+            <a class="collapse-item" href="#">حسابات الشركة</a>
+        </div>
+    </div>
+    </li>
+
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#company" aria-expanded="true"
             aria-controls="company">
@@ -54,20 +79,14 @@
 
     <!-- Nav Item - Operations Management -->
     <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOperations"
-            aria-expanded="true" aria-controls="collapseOperations">
-            <i class="fas fa-fw fa-cogs"></i>
+        <a class="nav-link" href="{{ route('containers.flow.index') }}">
+            <i class="fas fa-fw fa-clipboard-list"></i>
             <span>ادارة التشغيل</span>
         </a>
-        <div id="collapseOperations" class="collapse" aria-labelledby="headingOperations"
-            data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="#">الحجوزات</a>
-                <a class="collapse-item" href="#">كشف حساب الفارغ</a>
-                <a class="collapse-item" href="#">المواعيد</a>
-            </div>
-        </div>
     </li>
+
+
+
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#customs" aria-expanded="true"
             aria-controls="customs">
@@ -101,7 +120,8 @@
                 <div id="collapseSubFinancial" class="collapse">
                     <div class="bg-white py-2 collapse-inner rounded">
 
-                        <a class="collapse-item" href="#" data-toggle="collapse" data-target="#collapseExpenses">
+                        <a class="collapse-item" href="#" data-toggle="collapse"
+                            data-target="#collapseExpenses">
                             المصروفات <i class="fas fa-fw fa-chevron-down"></i>
                         </a>
                         <div id="collapseExpenses" class="collapse">
