@@ -75,8 +75,8 @@
                         <thead class="thead-light">
                             <tr>
                                 <th>#</th>
-                                <th>النوع</th>
-                                <th>المبلغ الإجمالي</th>
+                                <th>الوارد</th>
+                                <th>المنصرف</th>
                                 <th>الضريبة</th>
                                 <th>مرتبطة بـ</th>
                                 <th>تاريخ الإنشاء</th>
@@ -87,15 +87,28 @@
                             @forelse($transactions as $transaction)
                                 <tr>
                                     <td>{{ $transaction->id }}</td>
-                                    <td>
-                                        @if ($transaction->type == 'income')
-                                            <span class="badge badge-success">وارد</span>
+
+                                    {{-- عمود الوارد --}}
+                                    <td class="font-weight-bold text-monospace">
+                                        @if ($transaction->type === 'income')
+                                            <span class="text-success">{{ number_format($transaction->total_amount, 2) }}
+                                                ر.س</span>
                                         @else
-                                            <span class="badge badge-danger">منصرف</span>
+                                            -
                                         @endif
                                     </td>
+
+                                    {{-- عمود المنصرف --}}
                                     <td class="font-weight-bold text-monospace">
-                                        {{ number_format($transaction->total_amount, 2) }} $</td>
+                                        @if ($transaction->type === 'expense')
+                                            <span class="text-danger">{{ number_format($transaction->total_amount, 2) }}
+                                                ر.س</span>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+
+                                    {{-- الضريبة --}}
                                     <td>
                                         @if ($transaction->tax_value > 0)
                                             @php
@@ -108,6 +121,8 @@
                                             -
                                         @endif
                                     </td>
+
+                                    {{-- مرتبطة بـ --}}
                                     <td>
                                         @if ($transaction->transactionable)
                                             @php
@@ -131,15 +146,20 @@
                                             -
                                         @endif
                                     </td>
+
                                     <td>{{ $transaction->created_at->format('Y-m-d') }}</td>
+
+                                    {{-- الإجراءات --}}
                                     <td>
                                         <button class="btn btn-sm btn-circle btn-info" title="عرض التفاصيل"
                                             data-toggle="modal"
                                             data-target="#showTransactionModal{{ $transaction->id }}"><i
                                                 class="fas fa-eye"></i></button>
+
                                         <button class="btn btn-sm btn-circle btn-primary" title="تعديل" data-toggle="modal"
                                             data-target="#editTransactionModal{{ $transaction->id }}"><i
                                                 class="fas fa-edit"></i></button>
+
                                         <button class="btn btn-sm btn-circle btn-danger" title="حذف" data-toggle="modal"
                                             data-target="#deleteTransactionModal{{ $transaction->id }}"><i
                                                 class="fas fa-trash"></i></button>

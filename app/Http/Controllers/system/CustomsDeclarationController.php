@@ -10,9 +10,63 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
+
 
 class CustomsDeclarationController extends Controller
 {
+
+    public function index(Request $request)
+    {
+        $q = trim((string)$request->get('q', ''));
+        $selectedStatus = $request->get('status', 'all');
+
+        // الاستعلام الأساسي مع العلاقات والعدّادات
+        $query = CustomsDeclaration::query()
+            ->with(['client', 'clearanceOffice'])
+            ->withCount(['containers', 'dailyTransactions']);
+
+        // فلترة البحث: رقم البيان + اسم العميل + اسم مكتب التخليص
+        if ($q !== '') {
+            $query->where(function ($qq) use ($q) {
+                $qq->where('statement_number', 'LIKE', "%{$q}%")
+                    ->orWhereHas('client', fn($c) => $c->where('name', 'LIKE', "%{$q}%"))
+                    ->orWhereHas('clearanceOffice', fn($o) => $o->where('name', 'LIKE', "%{$q}%"));
+            });
+        }
+
+        // فلترة الحالة إن تم اختيار تبويب معين
+        if ($selectedStatus !== 'all') {
+            $query->where('statement_status', $selectedStatus);
+        }
+
+        // الحالات المتاحة من الداتا نفسها (ديناميكي)
+        $statuses = CustomsDeclaration::query()
+            ->select('statement_status')->distinct()->pluck('statement_status')
+            ->filter()->values();
+
+        // إحصائيات أعلى الصفحة
+        $today = Carbon::today();
+        $soon  = (clone $today)->addDays(7);
+
+        $totalCount   = CustomsDeclaration::count();
+        $expiringSoon = CustomsDeclaration::whereBetween('expire_date', [$today, $soon])->count();
+        $expiredCount = CustomsDeclaration::whereDate('expire_date', '<', $today)->count();
+        $totalWeight  = (float) CustomsDeclaration::sum('weight');
+
+        $declarations = $query->orderByDesc('id')->paginate(12)->withQueryString();
+
+        return view('dashboard.customs_declarations.index', compact(
+            'declarations',
+            'q',
+            'selectedStatus',
+            'statuses',
+            'totalCount',
+            'expiringSoon',
+            'expiredCount',
+            'totalWeight'
+        ));
+    }
     /**
      * Store a newly created resource in storage.
      *

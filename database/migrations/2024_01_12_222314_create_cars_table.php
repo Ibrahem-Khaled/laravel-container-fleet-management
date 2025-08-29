@@ -23,6 +23,7 @@ return new class extends Migration {
             $table->string('number')->unique();
             $table->string('insurance_expire')->nullable();
             $table->string('oil_change_number')->default(10000)->nullable();
+            $table->unsignedBigInteger('odometer')->default(0);
             $table->softDeletes();
 
             $table->timestamps();

@@ -25,7 +25,7 @@ class ContainerFlowController extends Controller
         ];
 
         // الافتراضي يفتح على "المحمّلة" (نقل)
-        $selectedStatus = $request->get('status', 'transport');
+        $selectedStatus = $request->get('status', 'wait');
         $search         = $request->get('search');
 
         $q = Container::query()

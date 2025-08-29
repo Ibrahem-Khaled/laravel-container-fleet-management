@@ -10,7 +10,7 @@ class CustomsDeclaration extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $guarded = ['id'];
+    protected $fillable = ['statement_number', 'client_id', 'clearance_office_id', 'expire_date', 'weight', 'statement_status'];
 
     public function client()
     {
