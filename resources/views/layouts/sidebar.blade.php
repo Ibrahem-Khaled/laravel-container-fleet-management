@@ -138,8 +138,8 @@
                         <div id="collapseRevenues" class="collapse">
                             <div class="bg-white py-2 collapse-inner rounded" style="margin-right: 15px;">
                                 {{-- استبدل # بالروابط الصحيحة --}}
-                                <a class="collapse-item" href="#">ايرادات الحجوزات</a>
-                                <a class="collapse-item" href="#">ايرادات اخرى</a>
+                                <a class="collapse-item" href="{{ route('revenues.clearance.index') }}">مكتب التخليص جمركي</a>
+                                <a class="collapse-item" href="#">حركة البيع والشراء</a>
                             </div>
                         </div>
 

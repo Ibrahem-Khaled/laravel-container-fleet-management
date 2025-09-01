@@ -3,8 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\{Model, Builder, SoftDeletes};
 
 class Container extends Model
 {
@@ -27,6 +26,8 @@ class Container extends Model
         'is_rent' => 'boolean',
         'transfer_date' => 'datetime',
         'date_empty' => 'datetime',
+        'price' => 'integer',
+        'rent_price' => 'integer',
     ];
     public function rentUser()
     {
@@ -59,6 +60,25 @@ class Container extends Model
                 $qq->where('number', 'like', "%{$term}%")
                     ->orWhere('direction', 'like', "%{$term}%");
             });
+        }
+        return $q;
+    }
+
+    // الحاويات المحتسبة كـ "تم النقل"
+    public function scopeTransported(Builder $q): Builder
+    {
+        // عدّل الحالات حسب تعريف مشروعك
+        return $q->whereIn('status', ['transport', 'done']);
+    }
+
+    // فلترة بالتاريخ على transfer_date
+    public function scopeWithinTransferDate(Builder $q, ?string $startDate, ?string $endDate): Builder
+    {
+        if ($startDate) {
+            $q->whereDate('transfer_date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $q->whereDate('transfer_date', '<=', $endDate);
         }
         return $q;
     }

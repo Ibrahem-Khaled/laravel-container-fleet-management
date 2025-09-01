@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Traits\FiltersByRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -57,29 +58,16 @@ class User extends Authenticatable
         return $this->hasMany(Tip::class, 'driver_id');
     }
 
-
-
-    ///this accessors functions
-    public function getTotalIncome(?string $startDate = null, ?string $endDate = null): float
+    /** جميع الحاويات الخاصة بالمكتب عبر الإقرارات الجمركية */
+    public function containers(): HasManyThrough
     {
-        return (float) $this->dailyTransactions()
-            ->where('type', 'income') // الشرط الإضافي هنا
-            ->withinDateRange($startDate, $endDate)
-            ->sum('total_amount');
-    }
-
-    /**
-     * حساب إجمالي المنصرف (Expense) فقط للمستخدم مع فلتر تاريخ اختياري.
-     *
-     * @param string|null $startDate
-     * @param string|null $endDate
-     * @return float
-     */
-    public function getTotalExpense(?string $startDate = null, ?string $endDate = null): float
-    {
-        return (float) $this->dailyTransactions()
-            ->where('type', 'expense') // الشرط الإضافي هنا
-            ->withinDateRange($startDate, $endDate)
-            ->sum('total_amount');
+        return $this->hasManyThrough(
+            Container::class,
+            CustomsDeclaration::class,
+            'clearance_office_id', // FK on customs_declarations -> users.id
+            'customs_id',          // FK on containers -> customs_declarations.id
+            'id',                  // users.id
+            'id'                   // customs_declarations.id
+        );
     }
 }

@@ -114,7 +114,7 @@
                                     } elseif ($remaining <= 0) {
                                         $statusText = 'متجاوز';
                                         $badgeClass = 'danger';
-                                    } elseif ($remaining <= 1000) {
+                                    } elseif ($remaining <= 2000) {
                                         $statusText = 'قريب';
                                         $badgeClass = 'warning';
                                     }

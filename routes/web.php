@@ -8,8 +8,8 @@ use App\Http\Controllers\system\ContainerFlowController;
 use App\Http\Controllers\system\CustomsDeclarationController;
 use App\Http\Controllers\system\DailyTransactionController;
 use App\Http\Controllers\system\mainController;
+use App\Http\Controllers\system\RevenuesController;
 use App\Http\Controllers\system\RoleController;
-use App\Http\Controllers\system\TipController;
 use App\Http\Controllers\system\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,7 +24,6 @@ Route::post('custom-registration', [AuthController::class, 'customRegistration']
 Route::get('signout', [AuthController::class, 'signOut'])->name('signout');
 
 
-
 Route::group(['prefix' => 'system', 'middleware' => ['auth']], function () {
 
     Route::get('home', [mainController::class, 'index'])->name('home');
@@ -37,6 +36,8 @@ Route::group(['prefix' => 'system', 'middleware' => ['auth']], function () {
     Route::post('customs-declarations', [CustomsDeclarationController::class, 'store'])->name('customs-declarations.store');
     Route::get('customs-declarations', [CustomsDeclarationController::class, 'index'])
         ->name('customs.index');
+    Route::get('customs-declarations/container/{customs_declaration}', [CustomsDeclarationController::class, 'containerDetails'])
+        ->name('customs.containers');
 
     Route::resource('daily-transactions', DailyTransactionController::class)->names('transactions');
     Route::get('get-transactionable-records', [DailyTransactionController::class, 'getTransactionableRecords'])->name('transactions.get_records');
@@ -50,4 +51,24 @@ Route::group(['prefix' => 'system', 'middleware' => ['auth']], function () {
     Route::post('/containers/{container}/flow/change', [ContainerFlowController::class, 'change'])->name('containers.flow.change');
     // AJAX: سيارات السائق
     Route::get('/containers/flow/drivers/{driver}/cars', [ContainerFlowController::class, 'carsByDriver'])->name('containers.flow.driverCars');
+
+    Route::get('/revenues/clearance-offices', [RevenuesController::class, 'index'])->name('revenues.clearance.index');
+    Route::prefix('reports/clearance-offices/{office}')
+        ->name('revenues.clearance.')
+        ->group(function () {
+            Route::get('monthly', [RevenuesController::class, 'monthly'])->name('monthly');
+            Route::get('yearly',  [RevenuesController::class, 'yearly'])->name('yearly');
+
+            // تحديث جماعي لسعر كل الحاويات في بيان محدد
+            Route::post(
+                'declarations/{declaration}/containers/bulk-price',
+                [RevenuesController::class, 'bulkUpdateDeclarationContainersPrice']
+            )->name('bulk_containers_price');
+
+            // تعديل سعر حاوية مفردة
+            Route::patch(
+                'containers/{container}',
+                [RevenuesController::class, 'updateSingleContainerPrice']
+            )->name('update_container_price');
+        });
 });

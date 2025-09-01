@@ -136,4 +136,23 @@ class CustomsDeclarationController extends Controller
             return back()->with('error', 'حدث خطأ غير متوقع، يرجى مراجعة البيانات والمحاولة مرة أخرى.')->withInput();
         }
     }
+
+    public function containerDetails(CustomsDeclaration $customs_declaration)
+    {
+        // Eager load the containers relationship to optimize database queries
+        $customs_declaration->load('containers');
+
+        // Prepare aggregated data for the view's statistics cards
+        $stats = [
+            'containers_count' => $customs_declaration->containers->count(),
+            'total_value'      => $customs_declaration->containers->sum('price'),
+            // You can add more stats here, e.g., count of transported containers
+            'transported_count' => $customs_declaration->containers->whereIn('status', ['transport', 'done'])->count(),
+        ];
+
+        return view('dashboard.customs_declarations.container_details', compact(
+            'customs_declaration',
+            'stats'
+        ));
+    }
 }

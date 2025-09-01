@@ -32,13 +32,16 @@ class DailyTransaction extends Model
     }
 
 
-    public function scopeWithinDateRange(Builder $query, ?string $startDate, ?string $endDate): Builder
+
+    public function scopeWithinDateRange(Builder $q, ?string $startDate, ?string $endDate): Builder
     {
-        return $query->when($startDate, function ($query, $date) {
-            return $query->whereDate('created_at', '>=', $date);
-        })->when($endDate, function ($query, $date) {
-            return $query->whereDate('created_at', '<=', $date);
-        });
+        if ($startDate) {
+            $q->whereDate('created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $q->whereDate('created_at', '<=', $endDate);
+        }
+        return $q;
     }
 
     public function getTransactionsSummary(?string $startDate = null, ?string $endDate = null): array

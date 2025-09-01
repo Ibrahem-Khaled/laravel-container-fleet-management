@@ -85,8 +85,9 @@ class CarController extends Controller
      */
     public function destroy(Car $car)
     {
+        $car->driver_id = null;
+        $car->save();
         $car->delete();
-
         return redirect()->route('cars.index')->with('success', 'تم حذف السيارة بنجاح.');
     }
 }
