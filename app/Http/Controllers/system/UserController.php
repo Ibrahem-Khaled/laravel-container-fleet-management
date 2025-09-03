@@ -93,7 +93,7 @@ class UserController extends Controller
             'email' => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
             'role_id' => 'required|exists:roles,id',
-            'password' => 'required|confirmed|min:6',
+            'password' => 'nullable|confirmed|min:6',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'is_active' => 'required|boolean',
         ]);
