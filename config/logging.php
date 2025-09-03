@@ -52,6 +52,29 @@ return [
 
     'channels' => [
 
+        'audit' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/audit.log'),
+            'level' => 'info',
+            'formatter' => Monolog\Formatter\JsonFormatter::class,
+        ],
+
+        // مثال: إرسال الحرج إلى Slack
+        'audit_slack' => [
+            'driver' => 'slack',
+            'url' => env('LOG_SLACK_WEBHOOK_URL'),
+            'username' => 'AuditBot',
+            'emoji' => ':lock:',
+            'level' => 'critical',
+        ],
+
+        // مكدس يوحّد أكثر من قناة
+        'audit_stack' => [
+            'driver' => 'stack',
+            'channels' => ['audit', 'audit_slack'],
+            'ignore_exceptions' => false,
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),
@@ -89,7 +112,7 @@ return [
             'handler_with' => [
                 'host' => env('PAPERTRAIL_URL'),
                 'port' => env('PAPERTRAIL_PORT'),
-                'connectionString' => 'tls://'.env('PAPERTRAIL_URL').':'.env('PAPERTRAIL_PORT'),
+                'connectionString' => 'tls://' . env('PAPERTRAIL_URL') . ':' . env('PAPERTRAIL_PORT'),
             ],
             'processors' => [PsrLogMessageProcessor::class],
         ],

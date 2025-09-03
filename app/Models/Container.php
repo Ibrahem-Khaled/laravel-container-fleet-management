@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\{Model, Builder, SoftDeletes};
+use Illuminate\Database\Eloquent\{Builder, SoftDeletes};
 
-class Container extends Model
+class Container extends BaseModel
 {
     use HasFactory, SoftDeletes;
+
     protected $fillable = [
         'rent_id',
         'customs_id',

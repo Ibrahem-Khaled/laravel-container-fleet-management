@@ -2,13 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class Tip extends Model
+class Tip extends BaseModel
 {
-    use HasFactory;
-
     protected $fillable = ['price', 'container_id', 'driver_id', 'car_id', 'type'];
 
     public function container()

@@ -2,37 +2,45 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
 use App\Traits\FiltersByRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\Eloquent\SoftDeletes; // أضف هذا
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+use OwenIt\Auditing\Auditable;                   // Trait
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
-class User extends Authenticatable
+class User extends Authenticatable implements AuditableContract
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes, FiltersByRole;
+    use HasFactory, Notifiable, SoftDeletes, FiltersByRole, Auditable, LogsActivity;
 
     protected $guarded = ['id'];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
+
+    // Spatie Activitylog options على مستوى User
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logExcept(['password', 'remember_token', 'updated_at'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn(string $ev) => static::class . " {$ev}");
+    }
 
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
     }
-
 
     public function dailyTransactions(): MorphMany
     {
@@ -53,12 +61,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(CustomsDeclaration::class, 'clearance_office_id');
     }
+
     public function drivingTips()
     {
         return $this->hasMany(Tip::class, 'driver_id');
     }
 
-    /** جميع الحاويات الخاصة بالمكتب عبر الإقرارات الجمركية */
     public function containers(): HasManyThrough
     {
         return $this->hasManyThrough(

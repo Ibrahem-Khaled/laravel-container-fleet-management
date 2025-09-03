@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 
-class CarChangeOilData extends Model
+class CarChangeOilData extends BaseModel
 {
 
     protected $table = 'car_change_oil_data'; // مهم جداً

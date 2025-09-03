@@ -160,6 +160,21 @@
         </div>
     </li>
 
+    <!-- Nav Item - Logs Management -->
+    {{-- <li class="nav-item">
+        <a class="nav-link" href="{{ route('logs.activity') }}">
+            <i class="fas fa-fw fa-file-alt"></i>
+            <span>ادارة السجلات</span>
+        </a>
+    </li> --}}
+    <li class="nav-item">
+        <a class="nav-link" href="{{ route('logs.audits') }}">
+            <i class="fas fa-fw fa-file-alt"></i>
+            <span>ادارة التدقيقات</span>
+        </a>
+    </li>
+
+
     <!-- Nav Item - Employee Management -->
     {{-- <li class="nav-item">
         <a class="nav-link" href="{{ route('getEmployee') }}">

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\LogsController;
 use App\Http\Controllers\system\CarChangeOilsController;
 use App\Http\Controllers\system\CarController;
 use App\Http\Controllers\system\ClearanceOfficeController;
@@ -71,4 +72,7 @@ Route::group(['prefix' => 'system', 'middleware' => ['auth']], function () {
                 [RevenuesController::class, 'updateSingleContainerPrice']
             )->name('update_container_price');
         });
+
+    Route::get('logs/activity', [LogsController::class, 'activity'])->name('logs.activity');
+    Route::get('logs/audits',   [LogsController::class, 'audits'])->name('logs.audits');
 });

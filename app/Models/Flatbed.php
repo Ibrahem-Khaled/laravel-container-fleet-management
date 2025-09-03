@@ -3,9 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class Flatbed extends Model
+class Flatbed extends BaseModel
 {
     use HasFactory;
 

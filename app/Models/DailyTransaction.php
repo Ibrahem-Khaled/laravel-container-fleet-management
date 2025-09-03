@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
-class DailyTransaction extends Model
+class DailyTransaction extends BaseModel
 {
+
     protected $fillable = [
         'transactionable_id',
         'transactionable_type',

@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-class SellAndBuy extends Model
+class SellAndBuy extends BaseModel
 {
     protected $fillable = [
         'title',
