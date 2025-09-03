@@ -38,7 +38,7 @@
                                     </span>
                                 </div>
                                 <input type="text" name="user_id" value="{{ request('user_id') }}"
-                                       class="form-control border-left-0" placeholder="مثال: 12">
+                                    class="form-control border-left-0" placeholder="مثال: 12">
                             </div>
                         </div>
 
@@ -148,14 +148,16 @@
                                 <tr class="audit-row">
                                     <td class="align-middle">
                                         <div class="font-weight-bold text-dark">{{ $au->created_at->format('Y-m-d') }}</div>
-                                        <div class="small text-primary font-weight-bold">{{ $au->created_at->format('H:i:s') }}</div>
+                                        <div class="small text-primary font-weight-bold">
+                                            {{ $au->created_at->format('H:i:s') }}</div>
                                         <div class="small text-muted">{{ $au->created_at->diffForHumans() }}</div>
                                     </td>
 
                                     <td class="align-middle">
-                                        @if($au->user)
+                                        @if ($au->user)
                                             <div class="d-flex align-items-center">
-                                                <div class="bg-primary rounded-circle p-2 text-white ml-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                <div class="bg-primary rounded-circle p-2 text-white ml-2"
+                                                    style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
                                                     <i class="fas fa-user" style="font-size: 12px;"></i>
                                                 </div>
                                                 <div>
@@ -189,8 +191,8 @@
                                         @php $hasDiff = !empty($old) || !empty($new); @endphp
                                         @if ($hasDiff)
                                             <button class="btn btn-outline-primary btn-sm shadow-sm" type="button"
-                                                    data-toggle="collapse" data-target="#{{ $diffId }}"
-                                                    aria-expanded="false" aria-controls="{{ $diffId }}">
+                                                data-toggle="collapse" data-target="#{{ $diffId }}"
+                                                aria-expanded="false" aria-controls="{{ $diffId }}">
                                                 <i class="fas fa-eye ml-1"></i>
                                                 عرض التغييرات
                                             </button>
@@ -203,8 +205,8 @@
 
                                     <td class="align-middle">
                                         <button class="btn btn-outline-info btn-sm shadow-sm" type="button"
-                                                data-toggle="collapse" data-target="#{{ $metaId }}"
-                                                aria-expanded="false" aria-controls="{{ $metaId }}">
+                                            data-toggle="collapse" data-target="#{{ $metaId }}"
+                                            aria-expanded="false" aria-controls="{{ $metaId }}">
                                             <i class="fas fa-info-circle ml-1"></i>
                                             عرض التفاصيل
                                         </button>
@@ -222,8 +224,12 @@
                                                         مقارنة التغييرات
                                                     </h6>
                                                     @php
-                                                        $translatedOld = \App\Support\LogHumanizer::translateValues($old);
-                                                        $translatedNew = \App\Support\LogHumanizer::translateValues($new);
+                                                        $translatedOld = \App\Support\LogHumanizer::translateValues(
+                                                            $old,
+                                                        );
+                                                        $translatedNew = \App\Support\LogHumanizer::translateValues(
+                                                            $new,
+                                                        );
                                                     @endphp
                                                     <div class="row">
                                                         <div class="col-md-6">
@@ -236,16 +242,19 @@
                                                                 </div>
                                                                 <div class="card-body p-0">
                                                                     <div class="json-container">
-                                                                        @if(empty($translatedOld))
+                                                                        @if (empty($translatedOld))
                                                                             <div class="p-3 text-muted text-center">
                                                                                 <i class="fas fa-info-circle ml-2"></i>
                                                                                 لا توجد قيم قديمة
                                                                             </div>
                                                                         @else
-                                                                            @foreach($translatedOld as $key => $value)
+                                                                            @foreach ($translatedOld as $key => $value)
                                                                                 <div class="json-item border-bottom">
-                                                                                    <div class="json-key">{{ $key }}</div>
-                                                                                    <div class="json-value old-value">{{ is_array($value) || is_object($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value }}</div>
+                                                                                    <div class="json-key">
+                                                                                        {{ $key }}</div>
+                                                                                    <div class="json-value old-value">
+                                                                                        {{ is_array($value) || is_object($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value }}
+                                                                                    </div>
                                                                                 </div>
                                                                             @endforeach
                                                                         @endif
@@ -263,16 +272,19 @@
                                                                 </div>
                                                                 <div class="card-body p-0">
                                                                     <div class="json-container">
-                                                                        @if(empty($translatedNew))
+                                                                        @if (empty($translatedNew))
                                                                             <div class="p-3 text-muted text-center">
                                                                                 <i class="fas fa-info-circle ml-2"></i>
                                                                                 لا توجد قيم جديدة
                                                                             </div>
                                                                         @else
-                                                                            @foreach($translatedNew as $key => $value)
+                                                                            @foreach ($translatedNew as $key => $value)
                                                                                 <div class="json-item border-bottom">
-                                                                                    <div class="json-key">{{ $key }}</div>
-                                                                                    <div class="json-value new-value">{{ is_array($value) || is_object($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value }}</div>
+                                                                                    <div class="json-key">
+                                                                                        {{ $key }}</div>
+                                                                                    <div class="json-value new-value">
+                                                                                        {{ is_array($value) || is_object($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value }}
+                                                                                    </div>
                                                                                 </div>
                                                                             @endforeach
                                                                         @endif
@@ -298,7 +310,7 @@
                                                 </h6>
                                                 <div class="row">
                                                     <div class="col-md-4">
-                                                        <div class="card border-info">
+                                                        <div class="card border-info h-100">
                                                             <div class="card-header bg-info text-white">
                                                                 <h6 class="mb-0 font-weight-bold">
                                                                     <i class="fas fa-network-wired ml-2"></i>
@@ -306,16 +318,69 @@
                                                                 </h6>
                                                             </div>
                                                             <div class="card-body">
-                                                                <div class="mb-2">
-                                                                    <strong class="text-info">عنوان IP:</strong>
+                                                                {{-- استدعاء الدالة لجلب معلومات الموقع --}}
+                                                                @php
+                                                                    $location = $ip
+                                                                        ? \App\Support\LogHumanizer::getLocationFromIp(
+                                                                            $ip,
+                                                                        )
+                                                                        : [];
+                                                                @endphp
+
+                                                                <div class="mb-3">
+                                                                    <strong class="text-info">
+                                                                        <i class="fas fa-map-marker-alt ml-1"></i>
+                                                                        عنوان IP:
+                                                                    </strong>
                                                                     <div class="mt-1">
-                                                                        @if($ip)
-                                                                            <span class="badge badge-outline-info">{{ $ip }}</span>
+                                                                        @if ($ip)
+                                                                            <span
+                                                                                class="badge badge-outline-info p-2 font-monospace">{{ $ip }}</span>
                                                                         @else
                                                                             <span class="text-muted">غير متوفر</span>
                                                                         @endif
                                                                     </div>
                                                                 </div>
+
+                                                                @if (!empty($location))
+                                                                    <hr>
+                                                                    <strong class="text-info">
+                                                                        <i class="fas fa-globe-americas ml-1"></i>
+                                                                        الموقع الجغرافي التقريبي:
+                                                                    </strong>
+                                                                    <ul class="list-group list-group-flush mt-2">
+                                                                        <li
+                                                                            class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                                            الدولة
+                                                                            <span class="font-weight-bold">
+                                                                                <i class="fas fa-flag ml-1 text-muted"></i>
+                                                                                {{ $location['country'] ?? 'غير معروف' }}
+                                                                            </span>
+                                                                        </li>
+                                                                        <li
+                                                                            class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                                            المدينة
+                                                                            <span class="font-weight-bold">
+                                                                                <i class="fas fa-city ml-1 text-muted"></i>
+                                                                                {{ $location['city'] ?? 'غير معروف' }}
+                                                                            </span>
+                                                                        </li>
+                                                                        <li
+                                                                            class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                                                            مزود الخدمة
+                                                                            <span class="badge badge-light">
+                                                                                <i
+                                                                                    class="fas fa-server ml-1 text-muted"></i>
+                                                                                {{ $location['isp'] ?? 'غير معروف' }}
+                                                                            </span>
+                                                                        </li>
+                                                                    </ul>
+                                                                @elseif($ip)
+                                                                    <div class="mt-2 text-muted small">
+                                                                        <i class="fas fa-exclamation-circle ml-1"></i>
+                                                                        تعذر تحديد الموقع (قد يكون IP محلي أو خاص).
+                                                                    </div>
+                                                                @endif
                                                             </div>
                                                         </div>
                                                     </div>
@@ -331,9 +396,11 @@
                                                                 <div class="mb-2">
                                                                     <strong class="text-info">User Agent:</strong>
                                                                     <div class="mt-1">
-                                                                        @if($ua)
-                                                                            <div class="user-agent-info p-2 bg-light border rounded">
-                                                                                <div class="font-monospace small" style="word-break: break-all; direction: ltr; text-align: left;">
+                                                                        @if ($ua)
+                                                                            <div
+                                                                                class="user-agent-info p-2 bg-light border rounded">
+                                                                                <div class="font-monospace small"
+                                                                                    style="word-break: break-all; direction: ltr; text-align: left;">
                                                                                     {{ $ua }}
                                                                                 </div>
                                                                                 @php
@@ -341,23 +408,57 @@
                                                                                     $browser = 'غير معروف';
                                                                                     $os = 'غير معروف';
 
-                                                                                    if (strpos($ua, 'Chrome') !== false) $browser = 'Google Chrome';
-                                                                                    elseif (strpos($ua, 'Firefox') !== false) $browser = 'Mozilla Firefox';
-                                                                                    elseif (strpos($ua, 'Safari') !== false) $browser = 'Safari';
-                                                                                    elseif (strpos($ua, 'Edge') !== false) $browser = 'Microsoft Edge';
+                                                                                    if (
+                                                                                        strpos($ua, 'Chrome') !== false
+                                                                                    ) {
+                                                                                        $browser = 'Google Chrome';
+                                                                                    } elseif (
+                                                                                        strpos($ua, 'Firefox') !== false
+                                                                                    ) {
+                                                                                        $browser = 'Mozilla Firefox';
+                                                                                    } elseif (
+                                                                                        strpos($ua, 'Safari') !== false
+                                                                                    ) {
+                                                                                        $browser = 'Safari';
+                                                                                    } elseif (
+                                                                                        strpos($ua, 'Edge') !== false
+                                                                                    ) {
+                                                                                        $browser = 'Microsoft Edge';
+                                                                                    }
 
-                                                                                    if (strpos($ua, 'Windows') !== false) $os = 'Windows';
-                                                                                    elseif (strpos($ua, 'Mac') !== false) $os = 'macOS';
-                                                                                    elseif (strpos($ua, 'Linux') !== false) $os = 'Linux';
-                                                                                    elseif (strpos($ua, 'Android') !== false) $os = 'Android';
-                                                                                    elseif (strpos($ua, 'iPhone') !== false || strpos($ua, 'iPad') !== false) $os = 'iOS';
+                                                                                    if (
+                                                                                        strpos($ua, 'Windows') !== false
+                                                                                    ) {
+                                                                                        $os = 'Windows';
+                                                                                    } elseif (
+                                                                                        strpos($ua, 'Mac') !== false
+                                                                                    ) {
+                                                                                        $os = 'macOS';
+                                                                                    } elseif (
+                                                                                        strpos($ua, 'Linux') !== false
+                                                                                    ) {
+                                                                                        $os = 'Linux';
+                                                                                    } elseif (
+                                                                                        strpos($ua, 'Android') !== false
+                                                                                    ) {
+                                                                                        $os = 'Android';
+                                                                                    } elseif (
+                                                                                        strpos($ua, 'iPhone') !==
+                                                                                            false ||
+                                                                                        strpos($ua, 'iPad') !== false
+                                                                                    ) {
+                                                                                        $os = 'iOS';
+                                                                                    }
                                                                                 @endphp
                                                                                 <div class="mt-2 d-flex flex-wrap">
-                                                                                    <span class="badge badge-primary ml-2 mb-1">
-                                                                                        <i class="fas fa-globe ml-1"></i>{{ $browser }}
+                                                                                    <span
+                                                                                        class="badge badge-primary ml-2 mb-1">
+                                                                                        <i
+                                                                                            class="fas fa-globe ml-1"></i>{{ $browser }}
                                                                                     </span>
                                                                                     <span class="badge badge-success mb-1">
-                                                                                        <i class="fas fa-laptop ml-1"></i>{{ $os }}
+                                                                                        <i
+                                                                                            class="fas fa-laptop ml-1"></i>{{ $os }}
                                                                                     </span>
                                                                                 </div>
                                                                             </div>
@@ -384,25 +485,31 @@
                                                             <div class="card-body">
                                                                 <div class="row">
                                                                     <div class="col-md-3">
-                                                                        <strong class="text-secondary">معرف التدقيق:</strong>
+                                                                        <strong class="text-secondary">معرف
+                                                                            التدقيق:</strong>
                                                                         <div class="mt-1">
-                                                                            <span class="badge badge-outline-secondary">#{{ $au->id }}</span>
+                                                                            <span
+                                                                                class="badge badge-outline-secondary">#{{ $au->id }}</span>
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-md-3">
                                                                         <strong class="text-secondary">نوع الكائن:</strong>
                                                                         <div class="mt-1">
-                                                                            <span class="badge badge-outline-secondary">{{ class_basename($au->auditable_type) }}</span>
+                                                                            <span
+                                                                                class="badge badge-outline-secondary">{{ class_basename($au->auditable_type) }}</span>
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-md-3">
-                                                                        <strong class="text-secondary">معرف الكائن:</strong>
+                                                                        <strong class="text-secondary">معرف
+                                                                            الكائن:</strong>
                                                                         <div class="mt-1">
-                                                                            <span class="badge badge-outline-secondary">#{{ $au->auditable_id }}</span>
+                                                                            <span
+                                                                                class="badge badge-outline-secondary">#{{ $au->auditable_id }}</span>
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-md-3">
-                                                                        <strong class="text-secondary">الطابع الزمني:</strong>
+                                                                        <strong class="text-secondary">الطابع
+                                                                            الزمني:</strong>
                                                                         <div class="mt-1 font-monospace small">
                                                                             {{ $au->created_at->format('Y-m-d H:i:s') }}
                                                                         </div>
@@ -437,7 +544,8 @@
                     <div class="card-footer bg-white border-top">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="text-muted small">
-                                عرض {{ $audits->firstItem() }} إلى {{ $audits->lastItem() }} من أصل {{ $audits->total() }} سجل
+                                عرض {{ $audits->firstItem() }} إلى {{ $audits->lastItem() }} من أصل
+                                {{ $audits->total() }} سجل
                             </div>
                             <div>
                                 {{ $audits->onEachSide(1)->links() }}
@@ -517,7 +625,7 @@
 
         .card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
 
         @media (max-width: 768px) {

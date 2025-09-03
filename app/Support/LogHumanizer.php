@@ -4,6 +4,9 @@ namespace App\Support;
 
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache; // <-- أضف هذا
+use Illuminate\Support\Facades\Http;
+
 
 class LogHumanizer
 {
@@ -74,19 +77,58 @@ class LogHumanizer
     public static function translateValues(array $values): array
     {
         $fieldMap = config('log_labels.fields', []);
+        $relationsMap = config('log_labels.relations', []);
         $translated = [];
 
         foreach ($values as $key => $value) {
+            // تجاهل القيم الفارغة إلا إذا كانت صفر (للحالات مثل is_active=false)
+            if (is_null($value)) continue;
+
+            // تحقق إذا كان الحقل معرّفاً كعلاقة (مثل client_id)
+            if (array_key_exists($key, $relationsMap)) {
+                [$modelClass, $displayColumn] = $relationsMap[$key];
+
+                // ابحث عن الموديل المرتبط في قاعدة البيانات
+                $relatedModel = $modelClass::find($value);
+
+                // إذا وجدنا الموديل، استخدم الاسم المحدد للعرض
+                // إذا لم نجده (ربما حُذف)، نعرض الرقم التعريفي كخيار احتياطي
+                $displayValue = $relatedModel ? $relatedModel->{$displayColumn} : "معرف غير موجود: {$value}";
+            } else {
+                // إذا لم يكن علاقة، قم بتنسيق القيمة بالطريقة العادية
+                $displayValue = self::fmt($key, $value);
+            }
+
             // ترجمة اسم الحقل (المفتاح)
             $translatedKey = $fieldMap[$key] ?? $key;
 
-            // تنسيق القيمة (مثل تحويل true إلى "نعم"، وتنسيق الأرقام)
-            // نستخدم نفس دالة fmt التي أنشأناها سابقاً
-            $formattedValue = self::fmt($key, $value);
-
-            $translated[$translatedKey] = $formattedValue;
+            $translated[$translatedKey] = $displayValue;
         }
 
         return $translated;
+    }
+
+    public static function getLocationFromIp(?string $ip): array
+    {
+        if (!$ip || in_array($ip, ['127.0.0.1', '::1'])) {
+            return []; // لا تبحث عن IPs محلية
+        }
+
+        // استخدام الكاش لتجنب تكرار الطلبات لنفس الـ IP
+        $cacheKey = "ip_location_{$ip}";
+
+        return Cache::remember($cacheKey, now()->addMonth(), function () use ($ip) {
+            try {
+                // استخدام خدمة مجانية وموثوقة (لا تحتاج مفتاح API)
+                $response = Http::get("http://ip-api.com/json/{$ip}?fields=status,message,country,countryCode,regionName,city,isp");
+
+                if ($response->successful() && $response->json('status') === 'success') {
+                    return $response->json();
+                }
+            } catch (\Throwable $e) {
+                // في حال حدوث أي خطأ في الاتصال، لا تفعل شيئاً
+            }
+            return []; // إرجاع مصفوفة فارغة في حال الفشل
+        });
     }
 }
