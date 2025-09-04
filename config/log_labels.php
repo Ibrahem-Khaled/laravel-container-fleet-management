@@ -28,6 +28,7 @@ return [
         \App\Models\SellAndBuy::class           => 'البيع والشراء',
         \App\Models\Flatbed::class              => 'السطحة',
         \App\Models\FlatbedContainer::class     => 'حاوية السطحة',
+        \App\Models\ContainerTransferOrder::class => 'أمر نقل الحاوية',
     ],
 
     /**
@@ -48,6 +49,7 @@ return [
         'sellandbuy'         => 'البيع والشراء',
         'flatbed'            => 'سطحة',
         'flatbedcontainer'   => 'حاوية السطحة',
+        'containertransferorder' => 'أمر نقل الحاوية',
     ],
 
     /**
@@ -83,6 +85,9 @@ return [
         // --- حقول مالية ومعاملات ---
         'price'               => 'السعر',
         'amount'              => 'المبلغ',
+        'total_amount'        => 'إجمالي المبلغ',
+        'tax_value'            => 'قيمة الضريبة',
+        'notes'                => 'ملاحظات',
 
         // --- حقول الحاويات والبيانات الجمركية ---
         'size'                => 'الحجم',
@@ -102,8 +107,12 @@ return [
         'container_id'        => 'الحاوية',
         'customs_id'          => 'البيان الجمركي',
         'clearance_office_id' => 'مكتب التخليص',
+        'transactionable_id'  => 'معرف المعاملة',
+        'transactionable_type' => 'نوع المعاملة',
 
         // --- حقول خاصة بالنظام والسجلات ---
+        'type'                => 'النوع',
+        'method'              => 'الطريقة',
         'auditable_type'      => 'نوع السجل',
         'event'               => 'الحدث',
         'expire_date'         => 'تاريخ الانتهاء',

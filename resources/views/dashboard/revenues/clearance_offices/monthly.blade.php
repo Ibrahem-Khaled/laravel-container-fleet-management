@@ -151,7 +151,7 @@
                                             <th>العميل</th>
                                             <th>عدد الحاويات</th>
                                             <th>إجمالي أسعار الحاويات</th>
-                                            <th >إجراءات</th>
+                                            <th>إجراءات</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -207,13 +207,15 @@
                                                                     ({{ $declaration->containers->count() }})
                                                                     :</h6>
                                                                 <div class="table-responsive">
-                                                                    <table class="table table-sm table-striped text-center">
+                                                                    <table
+                                                                        class="table table-sm table-striped text-center">
                                                                         <thead>
                                                                             <tr>
                                                                                 <th>#</th>
                                                                                 <th>رقم الحاوية</th>
                                                                                 <th>الحجم</th>
                                                                                 <th>الحالة</th>
+                                                                                <th>اوامر النقل</th>
                                                                                 <th>تاريخ النقل</th>
                                                                                 <th>السعر</th>
                                                                                 <th>تعديل</th>
@@ -227,6 +229,8 @@
                                                                                     </td>
                                                                                     <td>{{ $container->size }}</td>
                                                                                     <td>{{ $container->status }}</td>
+                                                                                    <td>{{ $container?->transfer_price_sum }}
+                                                                                    </td>
                                                                                     <td>{{ optional($container->transfer_date)->format('Y-m-d') }}
                                                                                     </td>
                                                                                     <td>{{ (int) ($container->price ?? 0) }}

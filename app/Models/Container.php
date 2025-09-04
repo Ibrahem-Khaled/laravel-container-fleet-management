@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\{Builder, SoftDeletes};
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Container extends BaseModel
 {
     use HasFactory, SoftDeletes;
-
+    protected $appends = ['transfer_price_sum']; // يظهر في JSON تلقائيًا
     protected $fillable = [
         'rent_id',
         'customs_id',
@@ -45,6 +47,34 @@ class Container extends BaseModel
         return $this->hasMany(Tip::class);
     }
 
+    public function transferOrders(): HasMany
+    {
+        return $this->hasMany(ContainerTransferOrder::class);
+    }
+
+    public function dailyTransactions()
+    {
+        return $this->morphMany(DailyTransaction::class, 'transactionable');
+    }
+
+
+    protected function transferPriceSum(): Attribute
+    {
+        return Attribute::get(function () {
+            // 1) موجود كـ attribute من withSum؟
+            if (array_key_exists('transfer_price_sum', $this->attributes)) {
+                return (float) $this->attributes['transfer_price_sum'];
+            }
+
+            // 2) العلاقة محمّلة مسبقًا؟
+            if ($this->relationLoaded('transferOrders')) {
+                return (float) $this->transferOrders->sum('price');
+            }
+
+            // 3) استعلام أخير (انتبه للأداء في الحشود الكبيرة)
+            return (float) $this->transferOrders()->sum('price');
+        });
+    }
     // سكوبات لتبويب الحالة والبحث
     public function scopeStatus($q, $status = null)
     {

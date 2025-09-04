@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Car;
+use App\Models\Container;
 
 class DailyTransactionController extends Controller
 {
@@ -26,6 +27,13 @@ class DailyTransactionController extends Controller
                 'name' => 'مصروفات سيارة',
                 'display_column' => 'number',
                 'contexts' => ['expense'] // مثال: مصاريف السيارة تعتبر منصرفات
+            ],
+            // يمكن إضافة موديلات أخرى هنا حسب الحاجة
+            Container::class => [
+                'model' => Container::class,
+                'name' => 'مصاريف الحاوية',
+                'display_column' => 'number',
+                'contexts' => ['expense'] // مثال: مصاريف الحاوية تعتبر منصرفات
             ],
         ];
 

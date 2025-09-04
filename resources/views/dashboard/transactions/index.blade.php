@@ -29,9 +29,14 @@
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                 <h6 class="m-0 font-weight-bold text-primary">قائمة الحركات المالية</h6>
-                <button class="btn btn-primary" data-toggle="modal" data-target="#createTransactionModal">
-                    <i class="fas fa-plus fa-sm"></i> إضافة حركة جديدة
-                </button>
+                <div class="d-flex ">
+                    <button class="btn btn-primary mr-2" data-toggle="modal" data-target="#createTransactionModal">
+                        <i class="fas fa-plus fa-sm"></i> إضافة حركة جديدة
+                    </button>
+                    <button class="btn btn-outline-primary mr-2" data-toggle="modal" data-target="#createTransferModal">
+                        <i class="fas fa-truck-loading"></i> أمر نقل حاوية
+                    </button>
+                </div>
             </div>
             <div class="card-body">
 
@@ -71,7 +76,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover" width="100%">
+                    <table class="table table-bordered table-hover text-center" width="100%">
                         <thead class="thead-light">
                             <tr>
                                 <th>#</th>
@@ -79,6 +84,7 @@
                                 <th>المنصرف</th>
                                 <th>الضريبة</th>
                                 <th>مرتبطة بـ</th>
+                                <th>ملاحظات</th>
                                 <th>تاريخ الإنشاء</th>
                                 <th>الإجراءات</th>
                             </tr>
@@ -147,6 +153,8 @@
                                         @endif
                                     </td>
 
+                                    <td>{{ $transaction->notes ?? 'لا توجد ملاحظات' }}</td>
+
                                     <td>{{ $transaction->created_at->format('Y-m-d') }}</td>
 
                                     {{-- الإجراءات --}}
@@ -192,7 +200,7 @@
     </div>
 
     @include('dashboard.transactions.modals.create', compact('transactionable_config'))
-
+    @include('dashboard.transactions.modals.transfer', compact('transactionable_config'))
 @endsection
 
 @push('scripts')
@@ -265,6 +273,220 @@
                 if (typeSelect.length) {
                     filterTransactionableOptions(typeSelect);
                 }
+            });
+        });
+    </script>
+
+
+    <script>
+        $(function() {
+            // CSRF لـ Ajax
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            const $search = $('#container_search');
+            const $hiddenId = $('#container_id');
+            const $list = $('#container_suggestions');
+            const $price = $('#transfer_price');
+            const $note = $('#transfer_note'); // ده select عندك
+            const $btnSave = $('#save_transfer_btn');
+
+            const $box = $('#summary_box');
+            const $curSum = $('#current_sum');
+            const $sumAfter = $('#sum_after');
+            const $last = $('#last_orders');
+
+            let debounceTimer = null;
+            let currentSum = 0;
+
+            function renderSuggestions(items) {
+                $list.empty().hide();
+                if (!items || !items.length) return;
+                items.forEach(function(item) {
+                    const $a = $('<a href="#" class="list-group-item list-group-item-action"></a>');
+                    $a.text(item.text).data('id', item.id);
+                    $list.append($a);
+                });
+                $list.show();
+            }
+
+            function fetchSuggestions(q) {
+                $.get('{{ route('containers.lookup') }}', {
+                    q: q
+                }, function(res) {
+                    renderSuggestions(res);
+                }).fail(() => renderSuggestions([]));
+            }
+
+            // يبني عنصر <li> فيه زر حذف ويحفظ البيانات في data-*
+            function renderOrderLine(o) {
+                const priceVal = parseFloat(o.price || 0);
+                const priceTxt = priceVal.toFixed(2);
+                const ts = o.ordered_at ? o.ordered_at : '';
+                const note = o.note ? ` — ${o.note}` : '';
+                const id = o.id ? o.id : '';
+
+                return $(`
+      <li class="d-flex align-items-center justify-content-between py-1" data-id="${id}" data-price="${priceVal}">
+        <span class="mr-2">${priceTxt} — ${ts}${note}</span>
+        <button type="button" class="btn btn-sm btn-outline-danger delete-transfer-btn" data-id="${id}">
+          حذف
+        </button>
+      </li>
+    `);
+            }
+
+            function fetchSummary(containerId) {
+                $box.hide();
+                $.get('{{ route('containers.transfer_summary', ['container' => 'CID']) }}'.replace('CID',
+                    containerId), function(res) {
+                    currentSum = parseFloat(res.transfer_price_sum || 0);
+                    $curSum.text(currentSum.toFixed(2));
+
+                    const p = parseFloat($price.val() || 0);
+                    $sumAfter.text((currentSum + p).toFixed(2));
+
+                    $last.empty();
+                    (res.last_orders || []).forEach(function(o) {
+                        $last.append(renderOrderLine(o));
+                    });
+
+                    $box.show();
+                    $btnSave.prop('disabled', false);
+                }).fail(function() {
+                    $btnSave.prop('disabled', true);
+                });
+            }
+
+            // البحث مع debounce
+            $search.on('input', function() {
+                const val = $(this).val().trim();
+                $hiddenId.val('');
+                $btnSave.prop('disabled', true);
+                $box.hide();
+                clearTimeout(debounceTimer);
+                if (val.length < 1) {
+                    $list.empty().hide();
+                    return;
+                }
+                debounceTimer = setTimeout(() => fetchSuggestions(val), 250);
+            });
+
+            // اختيار عنصر من قائمة الاقتراحات
+            $(document).on('click', '#container_suggestions a', function(e) {
+                e.preventDefault();
+                const id = $(this).data('id');
+                const text = $(this).text();
+                $hiddenId.val(id);
+                $search.val(text);
+                $list.empty().hide();
+                fetchSummary(id);
+            });
+
+            // إغلاق قائمة الاقتراحات عند الضغط خارجها
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#container_search, #container_suggestions').length) {
+                    $list.empty().hide();
+                }
+            });
+
+            // تحديث “الإجمالي بعد الإضافة” عند تغيير السعر
+            $price.on('input', function() {
+                const p = parseFloat($(this).val() || 0);
+                $sumAfter.text((currentSum + p).toFixed(2));
+            });
+
+            // حفظ أمر النقل
+            $btnSave.on('click', function() {
+                const payload = {
+                    container_id: $hiddenId.val(),
+                    price: $price.val(),
+                    note: $note.val() // هي قيمة select
+                };
+
+                if (!payload.container_id || !payload.price) {
+                    alert('يرجى اختيار الحاوية وإدخال السعر.');
+                    return;
+                }
+
+                $btnSave.prop('disabled', true);
+
+                $.post('{{ route('containers.transfer_orders.store') }}', payload, function(res) {
+                    // حدّث الإجماليات
+                    const added = parseFloat(payload.price || 0);
+                    currentSum = (currentSum + added);
+                    $curSum.text(currentSum.toFixed(2));
+                    $sumAfter.text(currentSum.toFixed(2));
+
+                    // أضف السطر الجديد بأول القائمة باستخدام بيانات الاستجابة (id, price, note)
+                    const appended = {
+                        id: res?.order?.id,
+                        price: payload.price,
+                        note: payload.note,
+                        ordered_at: 'الآن'
+                    };
+                    $last.prepend(renderOrderLine(appended));
+
+                    // إشعار
+                    (window.toastr && toastr.success) ? toastr.success(res.message): alert(res
+                        .message);
+
+                    // تنظيف الحقول (اختياري)
+                    $price.val('');
+                    $note.val('');
+                }).fail(function(xhr) {
+                    const msg = xhr.responseJSON?.message || 'تعذر إنشاء الأمر.';
+                    (window.toastr && toastr.error) ? toastr.error(msg): alert(msg);
+                }).always(function() {
+                    $btnSave.prop('disabled', false);
+                });
+            });
+
+            // حذف أمر نقل
+            $(document).on('click', '.delete-transfer-btn', function() {
+                const $btn = $(this);
+                const orderId = $btn.data('id');
+                if (!orderId) return;
+
+                if (!confirm('تأكيد حذف أمر النقل؟')) return;
+
+                $btn.prop('disabled', true);
+
+                $.ajax({
+                    url: '{{ route('containers.transfer_orders.destroy', ['order' => 'OID']) }}'
+                        .replace('OID', orderId),
+                    type: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(res) {
+                        const $li = $btn.closest('li');
+                        const priceVal = parseFloat($li.data('price') || 0);
+
+                        // خصم القيمة من الإجمالي وتحديث العرض
+                        currentSum = Math.max(0, currentSum - priceVal);
+                        $curSum.text(currentSum.toFixed(2));
+
+                        const p = parseFloat($price.val() || 0);
+                        $sumAfter.text((currentSum + p).toFixed(2));
+
+                        // إزالة السطر من القائمة
+                        $li.remove();
+
+                        (window.toastr && toastr.success) ? toastr.success(res.message): alert(
+                            res.message);
+                    },
+                    error: function(xhr) {
+                        const msg = xhr.responseJSON?.message || 'تعذر حذف أمر النقل.';
+                        (window.toastr && toastr.error) ? toastr.error(msg): alert(msg);
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false);
+                    }
+                });
             });
         });
     </script>

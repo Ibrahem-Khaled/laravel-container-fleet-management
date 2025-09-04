@@ -6,6 +6,7 @@ use App\Http\Controllers\system\CarChangeOilsController;
 use App\Http\Controllers\system\CarController;
 use App\Http\Controllers\system\ClearanceOfficeController;
 use App\Http\Controllers\system\ContainerFlowController;
+use App\Http\Controllers\system\ContainerTransfersController;
 use App\Http\Controllers\system\CustomsDeclarationController;
 use App\Http\Controllers\system\DailyTransactionController;
 use App\Http\Controllers\system\mainController;
@@ -27,7 +28,7 @@ Route::get('signout', [AuthController::class, 'signOut'])->name('signout');
 
 Route::group(['prefix' => 'system', 'middleware' => ['auth']], function () {
 
-    Route::get('home', [mainController::class, 'index'])->name('home');
+    Route::get('/', [mainController::class, 'index'])->name('home');
 
     Route::resource('users', UserController::class);
 
@@ -76,3 +77,14 @@ Route::group(['prefix' => 'system', 'middleware' => ['auth']], function () {
     Route::get('logs/activity', [LogsController::class, 'activity'])->name('logs.activity');
     Route::get('logs/audits',   [LogsController::class, 'audits'])->name('logs.audits');
 });
+
+Route::get('/containers/lookup', [ContainerTransfersController::class, 'lookup'])
+    ->name('containers.lookup'); // اقتراح الحاويات بالبحث
+
+Route::get('/containers/{container}/transfer-summary', [ContainerTransfersController::class, 'summary'])
+    ->name('containers.transfer_summary'); // ملخص الأوامر لحاوية
+
+Route::post('/containers/transfer-orders', [ContainerTransfersController::class, 'store'])
+    ->name('containers.transfer_orders.store'); // إنشاء أمر نقل
+Route::delete('/containers/transfer-orders/{order}', [ContainerTransfersController::class, 'destroy'])
+    ->name('containers.transfer_orders.destroy');
