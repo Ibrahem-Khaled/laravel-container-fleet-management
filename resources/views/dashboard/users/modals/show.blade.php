@@ -1,3 +1,13 @@
+<style>
+    .modal-body p {
+        font-size: 1.1rem;
+        margin: 0.5rem 0;
+        color: #555;
+        display: flex;
+        justify-content: space-between;
+        flex-direction: row-reverse;
+    }
+</style>
 <div class="modal fade" id="showUserModal{{ $user->id }}" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -21,6 +31,8 @@
                             {{ $user->is_active ? 'نشط' : 'غير نشط' }}
                         </span>
                     </p>
+                    <p><strong><i class="fas fa-money-bill-wave fa-fw mr-2"></i>الراتب الشهري:</strong>
+                        {{ $user->salary ? number_format($user->salary, 2) . ' ر.س' : 'لم يحدد' }}</p>
                     <p><strong><i class="fas fa-calendar-alt fa-fw mr-2"></i>تاريخ الانضمام:</strong>
                         {{ $user?->created_at?->format('d M, Y') }}</p>
                 </div>

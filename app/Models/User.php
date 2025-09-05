@@ -19,7 +19,18 @@ class User extends Authenticatable implements AuditableContract
 {
     use HasFactory, Notifiable, SoftDeletes, FiltersByRole, Auditable, LogsActivity;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+        'avatar',
+        'role_id',
+        'is_active',
+        'email_verified_at',
+        'password',
+        'operational_number',
+        'salary',
+    ];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -55,6 +66,12 @@ class User extends Authenticatable implements AuditableContract
     public function role()
     {
         return $this->belongsTo(Role::class);
+    }
+
+    // كل يوزر له سجل شريك واحد
+    public function partner()
+    {
+        return $this->hasOne(Partner::class);
     }
 
     public function customsDeclarations()

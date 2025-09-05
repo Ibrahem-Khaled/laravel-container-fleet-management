@@ -20,4 +20,14 @@ class Tip extends BaseModel
     {
         return $this->belongsTo(Car::class);
     }
+
+    // سكوبات مفيدة (اختيارية)
+    public function scopeForDriver($q, $driverId)
+    {
+        return $q->where('driver_id', $driverId);
+    }
+    public function scopeBetween($q, $from, $to)
+    {
+        return $q->whereBetween('created_at', [$from, $to]);
+    }
 }

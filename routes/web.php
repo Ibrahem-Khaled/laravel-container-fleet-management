@@ -5,11 +5,14 @@ use App\Http\Controllers\LogsController;
 use App\Http\Controllers\system\CarChangeOilsController;
 use App\Http\Controllers\system\CarController;
 use App\Http\Controllers\system\ClearanceOfficeController;
+use App\Http\Controllers\system\CompanyFinanceController;
 use App\Http\Controllers\system\ContainerFlowController;
 use App\Http\Controllers\system\ContainerTransfersController;
 use App\Http\Controllers\system\CustomsDeclarationController;
 use App\Http\Controllers\system\DailyTransactionController;
+use App\Http\Controllers\system\ExpensesController;
 use App\Http\Controllers\system\mainController;
+use App\Http\Controllers\system\PartnerProfitController;
 use App\Http\Controllers\system\RevenuesController;
 use App\Http\Controllers\system\RoleController;
 use App\Http\Controllers\system\UserController;
@@ -76,6 +79,31 @@ Route::group(['prefix' => 'system', 'middleware' => ['auth']], function () {
 
     Route::get('logs/activity', [LogsController::class, 'activity'])->name('logs.activity');
     Route::get('logs/audits',   [LogsController::class, 'audits'])->name('logs.audits');
+
+    // حسابات الشركة
+    Route::get('/company/finance', [CompanyFinanceController::class, 'index'])->name('company.finance');
+
+    // الشركاء
+    Route::get('/partners', [PartnerProfitController::class, 'index'])->name('partners.index');
+    Route::post('/partners', [PartnerProfitController::class, 'store'])->name('partners.store');
+    Route::put('/partners/{partner}', [PartnerProfitController::class, 'update'])->name('partners.update');
+    Route::delete('/partners/{partner}', [PartnerProfitController::class, 'destroy'])->name('partners.destroy');
+    Route::post('/partners/me', [PartnerProfitController::class, 'attachMe'])->name('partners.attach.me');
+
+    // الحركات
+    Route::get('/partners/{partner}/movements', [PartnerProfitController::class, 'movementsIndex'])->name('partners.movements.index');
+    Route::post('/partners/{partner}/movements', [PartnerProfitController::class, 'movementsStore'])->name('partners.movements.store');
+    Route::delete('/partners/{partner}/movements/{movement}', [PartnerProfitController::class, 'movementsDestroy'])->name('partners.movements.destroy');
+
+    // توزيع الأرباح
+    Route::get('/partners/profit', [PartnerProfitController::class, 'profitIndex'])->name('partners.profit.index');
+    Route::post('/partners/profit/run', [PartnerProfitController::class, 'profitRun'])->name('partners.profit.run');
+
+
+
+    Route::get('expenses/employees', [ExpensesController::class, 'index'])->name('expenses.employees.index');      // قائمة الموظفين
+    Route::get('expenses/employees/{user}', [ExpensesController::class, 'show'])->name('expenses.employees.show');   // صفحة موظف بتفاصيل شهرية + تراكمي
+    Route::get('expenses/employees/{user}/tips', [ExpensesController::class, 'driverTipsReport'])->name('expenses.employees.tips'); // صفحة موظف: التربات (الإكراميات) التي حصل عليها
 });
 
 Route::get('/containers/lookup', [ContainerTransfersController::class, 'lookup'])

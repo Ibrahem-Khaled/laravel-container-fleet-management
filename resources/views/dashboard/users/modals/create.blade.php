@@ -44,6 +44,10 @@
                             </select>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-9 form-group"><label>الراتب الشهري (اختياري)</label><input type="number"
+                                name="salary" class="form-control" min="0" step="0.01"></div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">إغلاق</button>

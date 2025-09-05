@@ -77,8 +77,8 @@
         </a>
         <div id="company" class="collapse" aria-labelledby="headingOperations" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="#">ادارة شؤون الشركة والشركاء</a>
-                <a class="collapse-item" href="#">حسابات الشركة</a>
+                <a class="collapse-item" href="{{ route('partners.index') }}">ادارة شؤون الشركة والشركاء</a>
+                <a class="collapse-item" href="{{ route('company.finance') }}">حسابات الشركة</a>
             </div>
         </div>
     </li>
@@ -125,9 +125,10 @@
                         <div id="collapseExpenses" class="collapse">
                             <div class="bg-white py-2 collapse-inner rounded" style="margin-right: 15px;">
                                 {{-- استبدل # بالروابط الصحيحة --}}
+                                <a class="collapse-item" href="{{ route('expenses.employees.index') }}">رواتب
+                                    الموظفين</a>
                                 <a class="collapse-item" href="#">مصروفات تشغيل</a>
                                 <a class="collapse-item" href="#">مصروفات ادارية</a>
-                                <a class="collapse-item" href="#">رواتب الموظفين</a>
                             </div>
                         </div>
 
@@ -138,7 +139,8 @@
                         <div id="collapseRevenues" class="collapse">
                             <div class="bg-white py-2 collapse-inner rounded" style="margin-right: 15px;">
                                 {{-- استبدل # بالروابط الصحيحة --}}
-                                <a class="collapse-item" href="{{ route('revenues.clearance.index') }}">مكتب التخليص جمركي</a>
+                                <a class="collapse-item" href="{{ route('revenues.clearance.index') }}">مكتب التخليص
+                                    جمركي</a>
                                 <a class="collapse-item" href="#">حركة البيع والشراء</a>
                             </div>
                         </div>

@@ -5,7 +5,7 @@
 @section('content')
 
     {{-- فلاتر --}}
-    <div class="card mb-4">
+    {{-- <div class="card mb-4">
         <div class="card-body">
             <form method="GET">
                 <div class="form-row">
@@ -38,7 +38,7 @@
                 </div>
             </form>
         </div>
-    </div>
+    </div> --}}
 
     {{-- KPIs رئيسية باستخدام المكوّن --}}
     <div class="row">

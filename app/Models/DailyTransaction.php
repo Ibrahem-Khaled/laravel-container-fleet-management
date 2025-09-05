@@ -65,4 +65,46 @@ class DailyTransaction extends BaseModel
             'balance'       => $totalIncome - $totalExpense,
         ];
     }
+
+
+
+
+    /* سكوبات مريحة */
+    public function scopeYear($q, int $year)
+    {
+        return $q->whereYear('created_at', $year);
+    }
+
+    public function scopeIncome($q)
+    {
+        return $q->where('type', 'income');
+    }
+
+    public function scopeExpense($q)
+    {
+        return $q->where('type', 'expense');
+    }
+
+    public function scopeMethodCash($q)
+    {
+        return $q->where('method', 'cash');
+    }
+    public function scopeMethodBank($q)
+    {
+        return $q->where('method', 'bank');
+    }
+
+    // تسمية الفئة حسب الـ morph type
+    public function getCategoryNameAttribute(): string
+    {
+        // استخدم morphMap إن أحببت لتقصير الأسماء في DB
+        $map = [
+            \App\Models\Car::class            => 'سيارات',
+            // \App\Models\User::WithRoles(['driver','employee'])       => 'مرتبات',
+            \App\Models\Container::class      => 'حاويات',
+            // fallback
+        ];
+
+        return $map[$this->transactionable_type] ?? class_basename($this->transactionable_type);
+    }
 }

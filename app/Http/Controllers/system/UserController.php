@@ -69,6 +69,7 @@ class UserController extends Controller
             'password' => 'required|confirmed|min:6',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'is_active' => 'required|boolean',
+            'salary' => 'nullable|numeric|min:0',
         ]);
 
         $data = $request->except('password', 'avatar');
@@ -96,6 +97,7 @@ class UserController extends Controller
             'password' => 'nullable|confirmed|min:6',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'is_active' => 'required|boolean',
+            'salary' => 'nullable|numeric|min:0',
         ]);
 
         $data = $request->except('password', 'avatar');

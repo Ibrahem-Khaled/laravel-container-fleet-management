@@ -37,6 +37,36 @@ return new class extends Migration
                 'description' => 'مكتب تخليص جمركي',
                 'created_at' => now(),
             ],
+            [
+                'name' => 'employee',
+                'description' => 'موظف',
+                'created_at' => now(),
+            ],
+            [
+                'name' => 'driver',
+                'description' => 'سائق',
+                'created_at' => now(),
+            ],
+            [
+                'name' => 'partner',
+                'description' => 'شريك',
+                'created_at' => now(),
+            ],
+            [
+                'name' => 'accountant',
+                'description' => 'محاسب',
+                'created_at' => now(),
+            ],
+            [
+                'name' => 'super_admin',
+                'description' => 'مشرف عام',
+                'created_at' => now(),
+            ],
+            [
+                'name' => 'finance_manager',
+                'description' => 'مدير مالي',
+                'created_at' => now(),
+            ],
 
         ]);
     }
