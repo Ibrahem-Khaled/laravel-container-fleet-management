@@ -95,4 +95,14 @@ class User extends Authenticatable implements AuditableContract
             'id'                   // customs_declarations.id
         );
     }
+
+
+    public function getImageAttribute()
+    {
+        if ($this->avatar) {
+            return asset('storage/' . $this->avatar);
+        } else {
+            return asset('assets/images/auth/user.jpg');
+        }
+    }
 }

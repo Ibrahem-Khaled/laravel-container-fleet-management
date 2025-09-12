@@ -1,6 +1,6 @@
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
-    <!-- Sidebar - Brand -->
+    {{-- الشعار --}}
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ route('home') }}">
         <div class="sidebar-brand-icon rotate-n-15">
             <i class="fas fa-laugh-wink"></i>
@@ -8,228 +8,164 @@
         <div class="sidebar-brand-text mx-3">لوحة التحكم</div>
     </a>
 
-    <!-- Divider -->
     <hr class="sidebar-divider my-0">
 
-    <!-- Nav Item - Dashboard -->
-
-
-    <!-- Heading -->
+    {{-- العنوان --}}
     <div class="sidebar-heading">
         الادارات
     </div>
 
-    <li class="nav-item">
+    {{-- أدوات الذكاء الاصطناعي (مثال رابط placeholder) --}}
+    <li class="nav-item {{ request()->is('ai-tools*') ? 'active' : '' }}">
         <a class="nav-link" href="#">
             <i class="fas fa-fw fa-robot"></i>
             <span>ادوات تحليل الذكاء الاصطناعي</span>
         </a>
     </li>
-    <li class="nav-item">
+
+    {{-- ادارة الصلاحيات --}}
+    <li class="nav-item {{ request()->routeIs('roles.*') ? 'active' : '' }}">
         <a class="nav-link" href="{{ route('roles.index') }}">
             <i class="fas fa-fw fa-lock"></i>
             <span>ادارة الصلاحيات</span>
         </a>
     </li>
-    <li class="nav-item">
+
+    {{-- ادارة الموظفين --}}
+    <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
         <a class="nav-link" href="{{ route('users.index') }}">
             <i class="fas fa-fw fa-users"></i>
             <span>ادارة الموظفين</span>
         </a>
     </li>
 
-
     {{-- ادارة السيارات --}}
-    <li class="nav-item">
+    @php
+        $carsOpen = request()->routeIs('cars.*') || request()->routeIs('car_change_oils.*');
+    @endphp
+    <li class="nav-item {{ $carsOpen ? 'active' : '' }}">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCars"
-            aria-expanded="true" aria-controls="collapseCars">
+           aria-expanded="{{ $carsOpen ? 'true' : 'false' }}" aria-controls="collapseCars">
             <i class="fas fa-fw fa-car"></i>
             <span>ادارة السيارات</span>
         </a>
-        <div id="collapseCars" class="collapse" aria-labelledby="headingCars" data-parent="#accordionSidebar">
+        <div id="collapseCars" class="collapse {{ $carsOpen ? 'show' : '' }}" aria-labelledby="headingCars" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="{{ route('cars.index') }}">عرض السيارات</a>
-                <a class="collapse-item" href="{{ route('car_change_oils.index') }}">ادارة الزيوت وصيانات</a>
+                <a class="collapse-item {{ request()->routeIs('cars.*') ? 'active' : '' }}" href="{{ route('cars.index') }}">عرض السيارات</a>
+                <a class="collapse-item {{ request()->routeIs('car_change_oils.*') ? 'active' : '' }}" href="{{ route('car_change_oils.index') }}">ادارة الزيوت وصيانات</a>
             </div>
         </div>
     </li>
 
-
-    <li class="nav-item">
+    {{-- ادارة التشغيل --}}
+    @php
+        $opsOpen = request()->routeIs('containers.flow.*') || request()->routeIs('customs.*');
+    @endphp
+    <li class="nav-item {{ $opsOpen ? 'active' : '' }}">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOperations"
-            aria-expanded="true" aria-controls="collapseOperations">
+           aria-expanded="{{ $opsOpen ? 'true' : 'false' }}" aria-controls="collapseOperations">
             <i class="fas fa-fw fa-car"></i>
             <span>ادارة التشغيل</span>
         </a>
-        <div id="collapseOperations" class="collapse" aria-labelledby="headingCars" data-parent="#accordionSidebar">
+        <div id="collapseOperations" class="collapse {{ $opsOpen ? 'show' : '' }}" aria-labelledby="headingCars" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="{{ route('containers.flow.index') }}">ادارة الحاويات</a>
-                <a class="collapse-item" href="{{ route('customs.index') }}">الحجوزات</a>
+                <a class="collapse-item {{ request()->routeIs('containers.flow.*') ? 'active' : '' }}" href="{{ route('containers.flow.index') }}">ادارة الحاويات</a>
+                <a class="collapse-item {{ request()->routeIs('customs.*') ? 'active' : '' }}" href="{{ route('customs.index') }}">الحجوزات</a>
             </div>
         </div>
     </li>
 
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#company" aria-expanded="true"
-            aria-controls="company">
+    {{-- الادارة العامة للشركة --}}
+    @php
+        $companyOpen = request()->routeIs('partners.*') || request()->routeIs('company.finance');
+    @endphp
+    <li class="nav-item {{ $companyOpen ? 'active' : '' }}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#company"
+           aria-expanded="{{ $companyOpen ? 'true' : 'false' }}" aria-controls="company">
             <i class="fas fa-fw fa-folder"></i>
             <span>الادارة العامة للشركة</span>
         </a>
-        <div id="company" class="collapse" aria-labelledby="headingOperations" data-parent="#accordionSidebar">
+        <div id="company" class="collapse {{ $companyOpen ? 'show' : '' }}" aria-labelledby="headingOperations" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="{{ route('partners.index') }}">ادارة شؤون الشركة والشركاء</a>
-                <a class="collapse-item" href="{{ route('company.finance') }}">حسابات الشركة</a>
+                <a class="collapse-item {{ request()->routeIs('partners.*') ? 'active' : '' }}" href="{{ route('partners.index') }}">ادارة شؤون الشركة والشركاء</a>
+                <a class="collapse-item {{ request()->routeIs('company.finance') ? 'active' : '' }}" href="{{ route('company.finance') }}">حسابات الشركة</a>
             </div>
         </div>
     </li>
 
-
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#customs" aria-expanded="true"
-            aria-controls="customs">
+    {{-- ادارة العملاء --}}
+    @php
+        $clientsOpen = request()->routeIs('clearance-offices.*') || request()->is('clients/reports*');
+    @endphp
+    <li class="nav-item {{ $clientsOpen ? 'active' : '' }}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#customs"
+           aria-expanded="{{ $clientsOpen ? 'true' : 'false' }}" aria-controls="customs">
             <i class="fas fa-fw fa-users"></i>
             <span>ادارة العملاء</span>
         </a>
-        <div id="customs" class="collapse" aria-labelledby="headingOperations" data-parent="#accordionSidebar">
+        <div id="customs" class="collapse {{ $clientsOpen ? 'show' : '' }}" aria-labelledby="headingOperations" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="{{ route('clearance-offices.index') }}">اضافة بيان جمركي</a>
-                <a class="collapse-item" href="#">التقارير المالية لعملاء</a>
+                <a class="collapse-item {{ request()->routeIs('clearance-offices.*') ? 'active' : '' }}" href="{{ route('clearance-offices.index') }}">اضافة بيان جمركي</a>
+                <a class="collapse-item {{ request()->is('clients/reports*') ? 'active' : '' }}" href="#">التقارير المالية لعملاء</a>
             </div>
         </div>
     </li>
 
-
-    <!-- Nav Item - Financial Management -->
-    <li class="nav-item">
+    {{-- الادارة المالية --}}
+    @php
+        $finOpen = request()->routeIs('transactions.*') || request()->routeIs('expenses.*') || request()->routeIs('revenues.*');
+    @endphp
+    <li class="nav-item {{ $finOpen ? 'active' : '' }}">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFinancial"
-            aria-expanded="true" aria-controls="collapseFinancial">
+           aria-expanded="{{ $finOpen ? 'true' : 'false' }}" aria-controls="collapseFinancial">
             <i class="fas fa-fw fa-dollar-sign"></i>
             <span>الادارة المالية</span>
         </a>
-        <div id="collapseFinancial" class="collapse" aria-labelledby="headingFinancial"
-            data-parent="#accordionSidebar">
+        <div id="collapseFinancial" class="collapse {{ $finOpen ? 'show' : '' }}" aria-labelledby="headingFinancial" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
 
-                <a class="collapse-item" href="{{ route('transactions.index') }}">اليومية</a>
+                <a class="collapse-item {{ request()->routeIs('transactions.*') ? 'active' : '' }}" href="{{ route('transactions.index') }}">اليومية</a>
+                <a class="collapse-item {{ request()->routeIs('custody.accounts.*') ? 'active' : '' }}" href="{{ route('custody.accounts.index') }}">حسابات العهد</a>
 
-                <a class="collapse-item" href="#" data-toggle="collapse" data-target="#collapseSubFinancial">
-                    الماليات <i class="fas fa-fw fa-chevron-down"></i>
+                {{-- المصروفات --}}
+                <a class="collapse-item {{ request()->routeIs('expenses.*') ? 'active' : '' }}" href="{{ route('expenses.employees.index') }}">
+                    رواتب الموظفين
                 </a>
-                <div id="collapseSubFinancial" class="collapse">
-                    <div class="bg-white py-2 collapse-inner rounded">
 
-                        <a class="collapse-item" href="#" data-toggle="collapse"
-                            data-target="#collapseExpenses">
-                            المصروفات <i class="fas fa-fw fa-chevron-down"></i>
-                        </a>
-                        <div id="collapseExpenses" class="collapse">
-                            <div class="bg-white py-2 collapse-inner rounded" style="margin-right: 15px;">
-                                {{-- استبدل # بالروابط الصحيحة --}}
-                                <a class="collapse-item" href="{{ route('expenses.employees.index') }}">رواتب
-                                    الموظفين</a>
-                                <a class="collapse-item" href="#">مصروفات تشغيل</a>
-                                <a class="collapse-item" href="#">مصروفات ادارية</a>
-                            </div>
-                        </div>
+                {{-- الايرادات --}}
+                <a class="collapse-item {{ request()->routeIs('revenues.clearance.index') ? 'active' : '' }}" href="{{ route('revenues.clearance.index') }}">
+                    مكتب التخليص جمركي
+                </a>
 
-                        <a class="collapse-item" href="#" data-toggle="collapse"
-                            data-target="#collapseRevenues">
-                            الايرادات <i class="fas fa-fw fa-chevron-down"></i>
-                        </a>
-                        <div id="collapseRevenues" class="collapse">
-                            <div class="bg-white py-2 collapse-inner rounded" style="margin-right: 15px;">
-                                {{-- استبدل # بالروابط الصحيحة --}}
-                                <a class="collapse-item" href="{{ route('revenues.clearance.index') }}">مكتب التخليص
-                                    جمركي</a>
-                                <a class="collapse-item" href="#">حركة البيع والشراء</a>
-                            </div>
-                        </div>
+                {{-- أمثلة لعناصر متداخلة أخرى (Placeholder) --}}
+                {{-- <a class="collapse-item" href="#">مصروفات تشغيل</a>
+                <a class="collapse-item" href="#">مصروفات ادارية</a>
+                <a class="collapse-item" href="#">حركة البيع والشراء</a>
+                <a class="collapse-item" href="#">ايجار معدات</a>
+                <a class="collapse-item" href="#">ايجار مكاتب</a> --}}
 
-                        <a class="collapse-item" href="#" data-toggle="collapse" data-target="#collapseRents">
-                            الايجارات <i class="fas fa-fw fa-chevron-down"></i>
-                        </a>
-                        <div id="collapseRents" class="collapse">
-                            <div class="bg-white py-2 collapse-inner rounded" style="margin-right: 15px;">
-                                {{-- استبدل # بالروابط الصحيحة --}}
-                                <a class="collapse-item" href="#">ايجار معدات</a>
-                                <a class="collapse-item" href="#">ايجار مكاتب</a>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
             </div>
         </div>
     </li>
 
-    <!-- Nav Item - Logs Management -->
-    {{-- <li class="nav-item">
-        <a class="nav-link" href="{{ route('logs.activity') }}">
-            <i class="fas fa-fw fa-file-alt"></i>
-            <span>ادارة السجلات</span>
-        </a>
-    </li> --}}
-    <li class="nav-item">
+    {{-- ادارة التدقيقات --}}
+    <li class="nav-item {{ request()->routeIs('logs.audits') ? 'active' : '' }}">
         <a class="nav-link" href="{{ route('logs.audits') }}">
             <i class="fas fa-fw fa-file-alt"></i>
             <span>ادارة التدقيقات</span>
         </a>
     </li>
 
-
-    <!-- Nav Item - Employee Management -->
-    {{-- <li class="nav-item">
-        <a class="nav-link" href="{{ route('getEmployee') }}">
-            <i class="fas fa-fw fa-users"></i>
-            <span>ادارة الموظفين</span>
-        </a>
-    </li>
-
-    <!-- Nav Item - Flatbeds Management -->
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('flatbeds.index') }}">
-            <i class="fas fa-fw fa-truck"></i>
-            <span>ادارة السطحات</span>
-        </a>
-    </li>
-
-    <!-- Nav Item - Thanks God -->
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('thanks.god') }}" onclick="return checkPassword(event);">
-            <i class="fas fa-fw fa-pray"></i>
-            <span>الحمد لله</span>
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('car_change_oils.index') }}">
-            <i class="fas fa-fw fa-oil-can"></i>
-            <span>ادارة غيار الزيت</span>
-        </a>
-    </li>
-
-    @if (Auth::user()->role == 'superAdmin')
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('passwords.index') }}">
-                <i class="fas fa-fw fa-lock"></i>
-                <span>ادارة كلمات المرور</span>
-            </a>
-        </li>
-    @endif --}}
-
-    <!-- Divider -->
     <hr class="sidebar-divider d-none d-md-block">
 
-    <!-- Sidebar Toggler (Sidebar) -->
     <div class="text-center d-none d-md-inline">
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
     </div>
 
-    <!-- Script for Password Check -->
     <script>
         function checkPassword(event) {
             event.preventDefault();
             var password = prompt("ادخل كلمة المرور");
-
             if (password === '1234') {
                 window.location.href = event.currentTarget.href;
             } else {

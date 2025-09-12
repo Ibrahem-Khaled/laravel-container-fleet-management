@@ -37,9 +37,12 @@
                                 value="{{ $transaction->total_amount }}" required>
                         </div>
                         <div class="col-md-6 form-group">
-                            <label>نسبة الضريبة (%)</label>
-                            <input type="number" step="0.01" class="form-control" name="tax_value"
-                                value="{{ (float) $transaction->tax_value ?? 0 }}">
+                            <label>هل بضريبة</label>
+                            <select class="form-control" name="tax_value" required>
+                                <option value="0" {{ $transaction->tax_value == 0 ? 'selected' : '' }}>لا</option>
+                                <option value="15" {{ $transaction->tax_value > 0 ? 'selected' : '' }}>نعم
+                                </option>
+                            </select>
                         </div>
                     </div>
 

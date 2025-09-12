@@ -95,7 +95,7 @@
         <div id="content-wrapper" class="d-flex flex-column">
             <div id="content">
                 @include('layouts.header')
-
+                @yield('actions') {{-- الأزرار الخاصة بكل صفحة --}}
                 <div class="container-fluid" id="report-container">
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <span class="h3 mb-0 text-gray-800">{{ Route::currentRouteName() }}</span>

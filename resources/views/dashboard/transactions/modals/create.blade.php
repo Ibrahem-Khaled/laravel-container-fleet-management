@@ -33,9 +33,11 @@
                                 placeholder="أدخل المبلغ الإجمالي">
                         </div>
                         <div class="col-md-6 form-group">
-                            <label>نسبة الضريبة (%)</label>
-                            <input type="number" step="0.01" class="form-control" name="tax_value" value="0"
-                                placeholder="أدخل 0 لعدم وجود ضريبة">
+                            <label>هل بضريبة</label>
+                            <select class="form-control" name="tax_value" required>
+                                <option value="0">لا</option>
+                                <option value="15">نعم</option>
+                            </select>
                         </div>
                     </div>
 
