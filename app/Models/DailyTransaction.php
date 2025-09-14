@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
 
 class DailyTransaction extends BaseModel
@@ -31,6 +32,10 @@ class DailyTransaction extends BaseModel
         return $this->morphTo();
     }
 
+    public function custodyAccount(): BelongsTo
+    {
+        return $this->belongsTo(CustodyAccount::class, 'custody_account_id');
+    }
 
 
     public function scopeWithinDateRange(Builder $q, ?string $startDate, ?string $endDate): Builder

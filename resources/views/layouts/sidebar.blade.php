@@ -125,7 +125,7 @@
             <div class="bg-white py-2 collapse-inner rounded">
 
                 <a class="collapse-item {{ request()->routeIs('transactions.*') ? 'active' : '' }}" href="{{ route('transactions.index') }}">اليومية</a>
-                <a class="collapse-item {{ request()->routeIs('custody.accounts.*') ? 'active' : '' }}" href="{{ route('custody.accounts.index') }}">حسابات العهد</a>
+                <a class="collapse-item {{ request()->routeIs('custody-accounts.*') ? 'active' : '' }}" href="{{ route('custody-accounts.index') }}">حسابات العهد</a>
 
                 {{-- المصروفات --}}
                 <a class="collapse-item {{ request()->routeIs('expenses.*') ? 'active' : '' }}" href="{{ route('expenses.employees.index') }}">

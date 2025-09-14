@@ -14,69 +14,48 @@ class CustodyAccount extends BaseModel
         'closed_by',
         'opened_at',
         'closed_at',
-        'notes',
+        'notes'
     ];
 
     protected $casts = [
-        'opening_balance' => 'decimal:2',
         'opened_at' => 'datetime',
         'closed_at' => 'datetime',
+        'opening_balance' => 'decimal:2',
     ];
 
-    /* علاقات */
-    public function user(): BelongsTo
+    public function owner()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
-
-    public function openedBy(): BelongsTo
+    public function openedBy()
     {
         return $this->belongsTo(User::class, 'opened_by');
     }
-
-    public function closedBy(): BelongsTo
+    public function closedBy()
     {
         return $this->belongsTo(User::class, 'closed_by');
     }
 
-    public function ledgerEntries(): HasMany
+    public function entries()
     {
         return $this->hasMany(CustodyLedgerEntry::class);
     }
-
-    public function cashCounts(): HasMany
+    public function cashCounts()
     {
         return $this->hasMany(CashCount::class);
     }
 
-    /* رصيد لحظي مشتق من دفتر الحركات */
-    public function currentBalance(?string $upTo = null): float
+    // اليومية التي صُرفت/وُردت من/إلى هذه العهدة (ربط مباشر بلا مورف)
+    public function dailyTransactions()
     {
-        $query = $this->ledgerEntries();
-
-        if ($upTo) {
-            $query->where('occurred_at', '<=', $upTo);
-        }
-
-        $sumIn  = (clone $query)->whereIn('direction', ['issue', 'income', 'transfer_in'])
-            ->sum('amount');
-        $sumOut = (clone $query)->whereIn('direction', ['return', 'expense', 'transfer_out'])
-            ->sum('amount');
-        $adj    = (clone $query)->where('direction', 'adjustment')->sum('amount');
-
-        // opening_balance يؤخذ في الاعتبار كبداية
-        return (float) ($this->opening_balance + $sumIn - $sumOut + $adj);
+        return $this->hasMany(DailyTransaction::class, 'custody_account_id');
     }
 
-    /* سكوب للحسابات المفتوحة */
-    public function scopeOpen($q)
+    // الرصيد الحالي محسوب من اليومية المرتبطة بالعهدة
+    public function currentBalance(): float
     {
-        return $q->where('status', 'open');
-    }
-
-    /* سكوب للحسابات المغلقة */
-    public function scopeClosed($q)
-    {
-        return $q->where('status', 'closed');
+        $income  = (float) $this->dailyTransactions()->where('type', 'income')->sum('total_amount');
+        $expense = (float) $this->dailyTransactions()->where('type', 'expense')->sum('total_amount');
+        return round((float)$this->opening_balance + $income - $expense, 2);
     }
 }

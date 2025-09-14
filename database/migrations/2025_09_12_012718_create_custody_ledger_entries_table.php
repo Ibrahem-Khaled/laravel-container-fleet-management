@@ -19,8 +19,12 @@ return new class extends Migration
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
 
+            // لربط سطر الدفتر بسطر اليومية (اختياري) — FK عادي مش مورف
+            $table->foreignId('daily_transaction_id')->nullable()
+                ->constrained('daily_transactions')->nullOnDelete();
+
             // issue: تسليم عهدة / return: توريد / expense: مصروف / income: تحصيل
-            // adjustment: تسوية جرد / transfer_*: تحويل بين مستخدمين
+            // adjustment: تسوية / transfer_*: تحويل بين عهد
             $table->enum('direction', [
                 'issue',
                 'return',
@@ -32,21 +36,19 @@ return new class extends Migration
             ]);
 
             $table->decimal('amount', 18, 2);
-            $table->char('currency', 3)->nullable(); // إن رغبت بدعم عملات
-
+            $table->char('currency', 3)->nullable();
             $table->timestamp('occurred_at')->useCurrent();
 
-            // الحركة مرتبطة بمصدر (فاتورة/مصروف/طلب...) - polymorphic
-            $table->nullableMorphs('reference');
+            // مرجع اختياري (فاتورة/طلب… إلخ) — بدون مورف هنا
+            $table->unsignedBigInteger('reference_id')->nullable();
+            $table->string('reference_type')->nullable();
 
-            // الجهة المقابلة (مستخدم آخر) - في التحويلات مثلًا
+            // طرف مقابل
             $table->foreignId('counterparty_user_id')->nullable()
-                ->constrained(table: 'users')
-                ->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
 
             $table->foreignId('created_by')->nullable()
-                ->constrained(table: 'users')
-                ->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
 
             $table->text('notes')->nullable();
 

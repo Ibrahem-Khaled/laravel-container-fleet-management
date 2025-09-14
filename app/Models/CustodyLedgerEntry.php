@@ -9,59 +9,37 @@ class CustodyLedgerEntry extends BaseModel
 {
     protected $fillable = [
         'custody_account_id',
+        'daily_transaction_id',
         'direction',
         'amount',
         'currency',
         'occurred_at',
-        'reference_type',
         'reference_id',
+        'reference_type',
         'counterparty_user_id',
         'created_by',
-        'notes',
+        'notes'
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
         'occurred_at' => 'datetime',
+        'amount'      => 'decimal:2',
     ];
 
-    public const DIR_INCREASE = ['issue', 'income', 'transfer_in'];
-    public const DIR_DECREASE = ['return', 'expense', 'transfer_out'];
-
-    /* علاقات */
-    public function account(): BelongsTo
+    public function account()
     {
         return $this->belongsTo(CustodyAccount::class, 'custody_account_id');
     }
-
-    public function reference(): MorphTo
+    public function dailyTransaction()
     {
-        return $this->morphTo();
+        return $this->belongsTo(DailyTransaction::class, 'daily_transaction_id');
     }
-
-    public function counterparty(): BelongsTo
+    public function counterparty()
     {
         return $this->belongsTo(User::class, 'counterparty_user_id');
     }
-
-    public function creator(): BelongsTo
+    public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
-    }
-
-    /* سكوبات مساعدة */
-    public function scopeBetween($q, $from, $to)
-    {
-        return $q->whereBetween('occurred_at', [$from, $to]);
-    }
-
-    public function scopeIncomeLike($q)
-    {
-        return $q->whereIn('direction', self::DIR_INCREASE);
-    }
-
-    public function scopeExpenseLike($q)
-    {
-        return $q->whereIn('direction', self::DIR_DECREASE);
     }
 }

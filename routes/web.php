@@ -4,13 +4,11 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LogsController;
 use App\Http\Controllers\system\CarChangeOilsController;
 use App\Http\Controllers\system\CarController;
-use App\Http\Controllers\system\CashCountController;
 use App\Http\Controllers\system\ClearanceOfficeController;
 use App\Http\Controllers\system\CompanyFinanceController;
 use App\Http\Controllers\system\ContainerFlowController;
 use App\Http\Controllers\system\ContainerTransfersController;
 use App\Http\Controllers\system\CustodyAccountController;
-use App\Http\Controllers\system\CustodyLedgerEntryController;
 use App\Http\Controllers\system\CustomsDeclarationController;
 use App\Http\Controllers\system\DailyTransactionController;
 use App\Http\Controllers\system\ExpensesController;
@@ -108,17 +106,13 @@ Route::group(['prefix' => 'system', 'middleware' => ['auth']], function () {
     Route::get('expenses/employees/{user}', [ExpensesController::class, 'show'])->name('expenses.employees.show');   // صفحة موظف بتفاصيل شهرية + تراكمي
     Route::get('expenses/employees/{user}/tips', [ExpensesController::class, 'driverTipsReport'])->name('expenses.employees.tips'); // صفحة موظف: التربات (الإكراميات) التي حصل عليها
 
-    Route::prefix('custody')->name('custody.')->group(function () {
-        Route::resource('accounts', CustodyAccountController::class);
-
-        Route::get('accounts/{custody_account}/entries/create', [CustodyLedgerEntryController::class, 'create'])->name('entries.create');
-        Route::post('accounts/{custody_account}/entries', [CustodyLedgerEntryController::class, 'store'])->name('entries.store');
-        Route::delete('accounts/{custody_account}/entries/{entry}', [CustodyLedgerEntryController::class, 'destroy'])->name('entries.destroy');
-
-        Route::get('accounts/{custody_account}/counts/create', [CashCountController::class, 'create'])->name('counts.create');
-        Route::post('accounts/{custody_account}/counts', [CashCountController::class, 'store'])->name('counts.store');
-    });
+    Route::resource('custody-accounts', CustodyAccountController::class);
 });
+
+
+
+
+
 
 Route::get('/containers/lookup', [ContainerTransfersController::class, 'lookup'])
     ->name('containers.lookup'); // اقتراح الحاويات بالبحث

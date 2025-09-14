@@ -1,86 +1,74 @@
 <?php
-
+// app/Services/CustodyService.php
 namespace App\Services;
 
-use App\Models\{CustodyAccount, CustodyLedgerEntry, CashCount, User};
+use App\Models\{CustodyAccount, DailyTransaction, CustodyLedgerEntry};
 use Illuminate\Support\Facades\DB;
-use InvalidArgumentException;
 
 class CustodyService
 {
-    public function issue(int $userId, float $amount, int $adminId, ?string $notes = null): CustodyLedgerEntry
-    {
-        return DB::transaction(function () use ($userId, $amount, $adminId, $notes) {
-            $account = CustodyAccount::firstOrCreate(
-                ['user_id' => $userId, 'status' => 'open'],
-                ['opening_balance' => 0, 'opened_by' => $adminId, 'opened_at' => now()]
-            );
-            return $account->ledgerEntries()->create([
-                'direction' => 'issue',
-                'amount' => $amount,
-                'occurred_at' => now(),
-                'created_by' => $adminId,
-                'notes' => $notes,
-            ]);
-        });
-    }
+    /**
+     * إنشاء سطر يومية مربوط بعهدة (FK)،
+     * مع خيار "مطابقة الدفتر" بإنشاء قيد Ledger مرتبط بـ daily_transaction_id.
+     */
+    public function createDailyAndMaybeLedger(
+        CustodyAccount $account,
+        array $dailyData,
+        bool $mirrorToLedger = true
+    ): DailyTransaction {
+        return DB::transaction(function () use ($account, $dailyData, $mirrorToLedger) {
+            // فرض الربط بالعهدة
+            $dailyData['custody_account_id'] = $account->id;
+            $dailyData['total_amount'] = ($dailyData['amount'] ?? 0) + ($dailyData['tax_value'] ?? 0);
 
-    public function entry(CustodyAccount $account, array $data, int $actorId): CustodyLedgerEntry
-    {
-        return DB::transaction(function () use ($account, $data, $actorId) {
-            $payload = array_merge($data, [
-                'occurred_at' => $data['occurred_at'] ?? now(),
-                'created_by'  => $actorId,
-            ]);
-            return $account->ledgerEntries()->create($payload);
-        });
-    }
+            /** @var DailyTransaction $daily */
+            $daily = DailyTransaction::create($dailyData);
 
-    public function transfer(CustodyAccount $from, CustodyAccount $to, float $amount, int $actorId, ?string $notes = null): void
-    {
-        if ($from->id === $to->id) throw new InvalidArgumentException('Cannot transfer to same account');
-        DB::transaction(function () use ($from, $to, $amount, $actorId, $notes) {
-            $from->ledgerEntries()->create([
-                'direction' => 'transfer_out',
-                'amount' => $amount,
-                'occurred_at' => now(),
-                'created_by' => $actorId,
-                'counterparty_user_id' => $to->user_id,
-                'notes' => $notes,
-            ]);
-            $to->ledgerEntries()->create([
-                'direction' => 'transfer_in',
-                'amount' => $amount,
-                'occurred_at' => now(),
-                'created_by' => $actorId,
-                'counterparty_user_id' => $from->user_id,
-                'notes' => $notes,
-            ]);
-        });
-    }
+            if ($mirrorToLedger) {
+                $direction = $daily->type === 'income' ? 'income' : 'expense';
 
-    public function countAndPost(CustodyAccount $account, float $expected, float $counted, int $actorId, ?string $notes = null): CashCount
-    {
-        return DB::transaction(function () use ($account, $expected, $counted, $actorId, $notes) {
-            $diff = $counted - $expected;
-            $count = $account->cashCounts()->create([
-                'counted_by' => $actorId,
-                'total_expected' => $expected,
-                'total_counted' => $counted,
-                'difference' => $diff,
-                'status' => 'posted',
-                'notes' => $notes,
-            ]);
-            if ($diff != 0.0) {
-                $account->ledgerEntries()->create([
-                    'direction' => 'adjustment',
-                    'amount' => abs($diff),
+                CustodyLedgerEntry::create([
+                    'custody_account_id' => $account->id,
+                    'daily_transaction_id' => $daily->id,
+                    'direction' => $direction,
+                    'amount' => $daily->total_amount,
+                    'currency' => $dailyData['currency'] ?? null,
                     'occurred_at' => now(),
-                    'created_by' => $actorId,
-                    'notes' => $diff > 0 ? 'زيادة جرد' : 'عجز جرد',
+                    'created_by' => auth()->id(),
+                    'notes' => $daily->notes,
                 ]);
             }
-            return $count;
+
+            return $daily;
+        });
+    }
+
+    public function updateDailyAndLedger(DailyTransaction $daily, array $data, bool $syncLedger = true): DailyTransaction
+    {
+        return DB::transaction(function () use ($daily, $data, $syncLedger) {
+            $data['total_amount'] = ($data['amount'] ?? $daily->amount) + ($data['tax_value'] ?? $daily->tax_value);
+            $daily->update($data);
+
+            if ($syncLedger && $daily->custodyAccount && $daily->id) {
+                $entry = CustodyLedgerEntry::where('daily_transaction_id', $daily->id)->first();
+                if ($entry) {
+                    $entry->update([
+                        'direction' => $daily->type === 'income' ? 'income' : 'expense',
+                        'amount'    => $daily->total_amount,
+                        'notes'     => $daily->notes,
+                    ]);
+                }
+            }
+
+            return $daily;
+        });
+    }
+
+    public function deleteDailyAndLedger(DailyTransaction $daily): void
+    {
+        DB::transaction(function () use ($daily) {
+            CustodyLedgerEntry::where('daily_transaction_id', $daily->id)->delete();
+            $daily->delete();
         });
     }
 }

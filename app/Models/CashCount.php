@@ -15,22 +15,21 @@ class CashCount extends BaseModel
         'total_counted',
         'difference',
         'status',
-        'notes',
+        'notes'
     ];
 
     protected $casts = [
-        'counted_at' => 'datetime',
+        'counted_at'     => 'datetime',
         'total_expected' => 'decimal:2',
         'total_counted'  => 'decimal:2',
         'difference'     => 'decimal:2',
     ];
 
-    public function account(): BelongsTo
+    public function account()
     {
-        return $this->belongsTo(CustodyAccount::class, 'custody_account_id');
+        return $this->belongsTo(CustodyAccount::class);
     }
-
-    public function counter(): BelongsTo
+    public function counter()
     {
         return $this->belongsTo(User::class, 'counted_by');
     }

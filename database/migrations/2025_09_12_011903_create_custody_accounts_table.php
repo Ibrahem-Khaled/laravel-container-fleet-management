@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('custody_accounts', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('user_id')
                 ->constrained()
                 ->cascadeOnUpdate()
@@ -23,19 +24,18 @@ return new class extends Migration
             // open/closed
             $table->enum('status', ['open', 'closed'])->default('open');
 
-            // من سلّم العهدة / من أقفلها
+            // من سلّم/أقفل العهدة
             $table->foreignId('opened_by')->nullable()
-                ->constrained(table: 'users')
-                ->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
             $table->foreignId('closed_by')->nullable()
-                ->constrained(table: 'users')
-                ->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
 
             $table->timestamp('opened_at')->nullable();
             $table->timestamp('closed_at')->nullable();
 
             $table->text('notes')->nullable();
             $table->timestamps();
+
             $table->index(['user_id', 'status']);
         });
     }

@@ -13,15 +13,13 @@ return new class extends Migration
     {
         Schema::create('cash_counts', function (Blueprint $table) {
             $table->id();
-
             $table->foreignId('custody_account_id')
                 ->constrained()
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
 
             $table->foreignId('counted_by')->nullable()
-                ->constrained(table: 'users')
-                ->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
 
             $table->timestamp('counted_at')->useCurrent();
 
@@ -32,7 +30,6 @@ return new class extends Migration
             $table->enum('status', ['draft', 'posted'])->default('draft');
 
             $table->text('notes')->nullable();
-
             $table->timestamps();
 
             $table->index(['custody_account_id', 'counted_at']);
