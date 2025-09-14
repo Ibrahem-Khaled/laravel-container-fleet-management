@@ -15,8 +15,7 @@ return new class extends Migration
             $table->id();
             // هذا السطر هو مفتاح العلاقة المتعددة الأشكال
             $table->morphs('transactionable'); // سيقوم بإنشاء transactionable_id و transactionable_type
-            $table->foreignId('custody_account_id')->nullable()
-                ->constrained('custody_accounts')->nullOnDelete();
+            $table->foreignId('custody_account_id')->nullable();
             $table->enum('type', ['income', 'expense']); // نوع الحركة: وارد أو منصرف
             $table->enum('method', ['cash', 'bank']); // طريقة الحركة
             $table->decimal('amount', 15, 2); // المبلغ الأساسي
