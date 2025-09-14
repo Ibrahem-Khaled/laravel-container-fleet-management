@@ -24,7 +24,7 @@ return new class extends Migration
             $table->text('notes')->nullable(); // ملاحظات
             $table->softDeletes();
             $table->timestamps();
-            $table->index(['transactionable_type', 'transactionable_id']);
+            // $table->index(['transactionable_type', 'transactionable_id']);
             $table->index(['custody_account_id', 'type', 'method']);
         });
     }
