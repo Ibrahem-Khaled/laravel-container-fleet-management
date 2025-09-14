@@ -11,7 +11,7 @@
                     <label>المستخدم</label>
                     <select name="user_id" class="form-control" required>
                         @foreach (\App\Models\User::orderBy('name')->get() as $u)
-                            <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->role }})</option>
+                            <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->role->description }})</option>
                         @endforeach
                     </select>
                 </div>

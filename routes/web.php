@@ -107,6 +107,8 @@ Route::group(['prefix' => 'system', 'middleware' => ['auth']], function () {
     Route::get('expenses/employees/{user}/tips', [ExpensesController::class, 'driverTipsReport'])->name('expenses.employees.tips'); // صفحة موظف: التربات (الإكراميات) التي حصل عليها
 
     Route::resource('custody-accounts', CustodyAccountController::class);
+    Route::post('/system/custody/{account}/issue', [CustodyAccountController::class, 'storeIssue'])
+        ->name('custody-accounts.issue');
 });
 
 
