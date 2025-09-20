@@ -15,6 +15,45 @@
             <x-stats-card icon="fas fa-user-times" title="المكاتب غير النشطة" :value="$stats['inactive_offices']" color="warning" />
         </div>
 
+        {{-- Tax Stats Cards --}}
+        <div class="row mb-4">
+            <x-stats-card icon="fas fa-check-circle" title="المكاتب مع ضرائب مفعلة" :value="$stats['tax_enabled_offices']" color="success" />
+            <x-stats-card icon="fas fa-times-circle" title="المكاتب مع ضرائب معطلة" :value="$stats['tax_disabled_offices']" color="danger" />
+        </div>
+
+        {{-- Tax Control Buttons --}}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">التحكم في الضرائب</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <form action="{{ route('clearance-offices.enable-tax-all') }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-success btn-lg btn-block"
+                                            onclick="return confirm('هل أنت متأكد من تفعيل الضرائب لجميع المكاتب؟')">
+                                        <i class="fas fa-check-circle"></i> تفعيل الضرائب لجميع المكاتب
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <form action="{{ route('clearance-offices.disable-tax-all') }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-danger btn-lg btn-block"
+                                            onclick="return confirm('هل أنت متأكد من إلغاء تفعيل الضرائب لجميع المكاتب؟')">
+                                        <i class="fas fa-times-circle"></i> إلغاء تفعيل الضرائب لجميع المكاتب
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- Offices List Card --}}
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
@@ -44,6 +83,7 @@
                                 <th>البريد الإلكتروني</th>
                                 <th>الهاتف</th>
                                 <th>الحالة</th>
+                                <th>الضرائب</th>
                                 <th>الإجراءات</th>
                             </tr>
                         </thead>
@@ -66,10 +106,21 @@
                                         </span>
                                     </td>
                                     <td>
+                                        <span class="badge badge-{{ $office->tax_enabled ? 'success' : 'danger' }}">
+                                            {{ $office->tax_enabled ? 'مفعلة' : 'معطلة' }}
+                                        </span>
+                                    </td>
+                                    <td>
                                         <!-- View Details Button -->
                                         <a href="{{ route('clearance-offices.show', $office->id) }}"
                                             class="btn btn-info btn-circle btn-sm" title="عرض التفاصيل والبيانات">
                                             <i class="fas fa-eye"></i>
+                                        </a>
+
+                                        <!-- Tax History Button -->
+                                        <a href="{{ route('clearance-offices.tax-history', $office->id) }}"
+                                            class="btn btn-secondary btn-circle btn-sm" title="سجل الضرائب">
+                                            <i class="fas fa-history"></i>
                                         </a>
 
                                         <!-- Add Declaration Button -->
@@ -78,6 +129,16 @@
                                             data-office-name="{{ $office->name }}" title="إضافة بيان جمركي">
                                             <i class="fas fa-plus"></i>
                                         </button>
+
+                                        <!-- Toggle Tax Button -->
+                                        <form action="{{ route('clearance-offices.toggle-tax', $office->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-{{ $office->tax_enabled ? 'warning' : 'success' }} btn-circle btn-sm"
+                                                    title="{{ $office->tax_enabled ? 'إلغاء تفعيل الضرائب' : 'تفعيل الضرائب' }}"
+                                                    onclick="return confirm('هل أنت متأكد من {{ $office->tax_enabled ? 'إلغاء تفعيل' : 'تفعيل' }} الضرائب لهذا المكتب؟')">
+                                                <i class="fas fa-{{ $office->tax_enabled ? 'times' : 'check' }}"></i>
+                                            </button>
+                                        </form>
 
                                         <!-- Edit Button -->
                                         <button class="btn btn-primary btn-circle btn-sm" data-toggle="modal"
@@ -101,7 +162,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center">لا توجد مكاتب تخليص لعرضها.</td>
+                                    <td colspan="6" class="text-center">لا توجد مكاتب تخليص لعرضها.</td>
                                 </tr>
                             @endforelse
                         </tbody>

@@ -10,6 +10,7 @@ use App\Models\{CustodyAccount, Role};
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 final class CustodyAccountController extends Controller
@@ -21,7 +22,7 @@ final class CustodyAccountController extends Controller
         $status = (string) ($req->string('status')->toString() ?: 'open');
 
         $accounts = CustodyAccount::query()
-            ->with(['owner.role:id,name'])               // eager minimal
+            ->with(['owner.role:id,name', 'dailyTransactions'])               // eager minimal
             ->when($search, fn($q) => $q->search($search))
             ->when($roleId, fn($q) => $q->forRole($roleId))
             ->when($status !== 'all', fn($q) => $q->status($status))
@@ -32,12 +33,22 @@ final class CustodyAccountController extends Controller
         $openCount   = CustodyAccount::status('open')->count();
         $closedCount = CustodyAccount::status('closed')->count();
 
+        // إحصائيات إضافية للعهد
+        $totalOpeningBalance = CustodyAccount::sum('opening_balance');
+        $totalCurrentBalance = CustodyAccount::get()->sum(function($account) {
+            return $account->currentBalance();
+        });
+        $totalTransactions = CustodyAccount::withCount('dailyTransactions')->get()->sum('daily_transactions_count');
+
         $roles = Role::orderBy('name')->get(['id', 'name', 'description']);
 
         return view('dashboard.custody.index', compact(
             'accounts',
             'openCount',
             'closedCount',
+            'totalOpeningBalance',
+            'totalCurrentBalance',
+            'totalTransactions',
             'roles',
             'roleId',
             'status',
@@ -54,7 +65,7 @@ final class CustodyAccountController extends Controller
         ]); // قواعد التحقق الرسمية. :contentReference[oaicite:1]{index=1}
 
         $data['status']    = 'open';
-        $data['opened_by'] = auth()->id();
+        $data['opened_by'] = Auth::id();
         $data['opened_at'] = now();
 
         CustodyAccount::create($data);
@@ -87,7 +98,7 @@ final class CustodyAccountController extends Controller
         ]);
 
         if ($data['status'] === 'closed' && $custody_account->status !== 'closed') {
-            $data['closed_by'] = auth()->id();
+            $data['closed_by'] = Auth::id();
             $data['closed_at'] = now();
         }
 
@@ -141,7 +152,7 @@ final class CustodyAccountController extends Controller
                 'reference_id'         => $daily->id,
                 'reference_type'       => \App\Models\DailyTransaction::class,
                 'counterparty_user_id' => null,
-                'created_by'           => auth()->id(),
+                'created_by'           => Auth::id(),
                 'notes'                => $notes,
             ]);
         }); // تُدار الذرّية آليًا: Commit/Rollback. :contentReference[oaicite:2]{index=2}

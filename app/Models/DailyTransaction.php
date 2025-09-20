@@ -13,18 +13,21 @@ class DailyTransaction extends BaseModel
     protected $fillable = [
         'transactionable_id',
         'transactionable_type',
+        'custody_account_id',
         'type',
         'amount',
         'method',
         'tax_value',
         'total_amount',
         'notes',
+        'transaction_date',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'tax_value' => 'decimal:2',
         'total_amount' => 'decimal:2',
+        'transaction_date' => 'datetime',
     ];
 
     public function transactionable(): MorphTo

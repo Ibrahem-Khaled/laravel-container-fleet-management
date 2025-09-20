@@ -16,7 +16,9 @@ use App\Http\Controllers\system\mainController;
 use App\Http\Controllers\system\PartnerProfitController;
 use App\Http\Controllers\system\RevenuesController;
 use App\Http\Controllers\system\RoleController;
+use App\Http\Controllers\system\TaxController;
 use App\Http\Controllers\system\UserController;
+use App\Http\Controllers\system\CarExpensesController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -38,6 +40,12 @@ Route::group(['prefix' => 'system', 'middleware' => ['auth']], function () {
 
     Route::resource('roles', RoleController::class);
     Route::resource('clearance-offices', ClearanceOfficeController::class)->parameters(['clearance-offices' => 'clearance_office']);
+
+    // مسارات التحكم في الضرائب للمكاتب الجمركية
+    Route::post('clearance-offices/{clearance_office}/toggle-tax', [ClearanceOfficeController::class, 'toggleTax'])->name('clearance-offices.toggle-tax');
+    Route::post('clearance-offices/enable-tax-all', [ClearanceOfficeController::class, 'enableTaxForAll'])->name('clearance-offices.enable-tax-all');
+    Route::post('clearance-offices/disable-tax-all', [ClearanceOfficeController::class, 'disableTaxForAll'])->name('clearance-offices.disable-tax-all');
+    Route::get('clearance-offices/{clearance_office}/tax-history', [ClearanceOfficeController::class, 'taxHistory'])->name('clearance-offices.tax-history');
 
     Route::post('customs-declarations', [CustomsDeclarationController::class, 'store'])->name('customs-declarations.store');
     Route::get('customs-declarations', [CustomsDeclarationController::class, 'index'])
@@ -109,6 +117,15 @@ Route::group(['prefix' => 'system', 'middleware' => ['auth']], function () {
     Route::resource('custody-accounts', CustodyAccountController::class);
     Route::post('/system/custody/{account}/issue', [CustodyAccountController::class, 'storeIssue'])
         ->name('custody-accounts.issue');
+
+    // الضرائب
+    Route::get('/taxes', [TaxController::class, 'index'])->name('taxes.index');
+    Route::get('/taxes/export', [TaxController::class, 'export'])->name('taxes.export');
+    Route::get('/taxes/details', [TaxController::class, 'showTransactionDetails'])->name('taxes.details');
+
+    // مصروفات السيارات
+    Route::get('/expenses/cars', [CarExpensesController::class, 'index'])->name('expenses.cars.index');
+    Route::get('/expenses/cars/{car}', [CarExpensesController::class, 'show'])->name('expenses.cars.show');
 });
 
 

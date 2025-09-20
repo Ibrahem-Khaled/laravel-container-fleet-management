@@ -113,7 +113,7 @@
 
     {{-- الادارة المالية --}}
     @php
-        $finOpen = request()->routeIs('transactions.*') || request()->routeIs('expenses.*') || request()->routeIs('revenues.*');
+        $finOpen = request()->routeIs('transactions.*') || request()->routeIs('expenses.*') || request()->routeIs('revenues.*') || request()->routeIs('taxes.*');
     @endphp
     <li class="nav-item {{ $finOpen ? 'active' : '' }}">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFinancial"
@@ -123,27 +123,29 @@
         </a>
         <div id="collapseFinancial" class="collapse {{ $finOpen ? 'show' : '' }}" aria-labelledby="headingFinancial" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-
+                <!-- اليومية -->
                 <a class="collapse-item {{ request()->routeIs('transactions.*') ? 'active' : '' }}" href="{{ route('transactions.index') }}">اليومية</a>
                 <a class="collapse-item {{ request()->routeIs('custody-accounts.*') ? 'active' : '' }}" href="{{ route('custody-accounts.index') }}">حسابات العهد</a>
 
-                {{-- المصروفات --}}
-                <a class="collapse-item {{ request()->routeIs('expenses.*') ? 'active' : '' }}" href="{{ route('expenses.employees.index') }}">
+                <!-- الإيرادات -->
+                <div class="dropdown-divider"></div>
+                <h6 class="collapse-header text-primary font-weight-bold">الإيرادات</h6>
+                <a class="collapse-item {{ request()->routeIs('revenues.clearance.index') ? 'active' : '' }}" href="{{ route('revenues.clearance.index') }}">
+                    مكاتب التخليص الجمركي
+                </a>
+                <a class="collapse-item {{ request()->routeIs('taxes.*') ? 'active' : '' }}" href="{{ route('taxes.index') }}">
+                    الضرائب
+                </a>
+
+                <!-- المصروفات -->
+                <div class="dropdown-divider"></div>
+                <h6 class="collapse-header text-danger font-weight-bold">المصروفات</h6>
+                <a class="collapse-item {{ request()->routeIs('expenses.employees.*') ? 'active' : '' }}" href="{{ route('expenses.employees.index') }}">
                     رواتب الموظفين
                 </a>
-
-                {{-- الايرادات --}}
-                <a class="collapse-item {{ request()->routeIs('revenues.clearance.index') ? 'active' : '' }}" href="{{ route('revenues.clearance.index') }}">
-                    مكتب التخليص جمركي
+                <a class="collapse-item {{ request()->routeIs('expenses.cars.*') ? 'active' : '' }}" href="{{ route('expenses.cars.index') }}">
+                    مصروفات السيارات
                 </a>
-
-                {{-- أمثلة لعناصر متداخلة أخرى (Placeholder) --}}
-                {{-- <a class="collapse-item" href="#">مصروفات تشغيل</a>
-                <a class="collapse-item" href="#">مصروفات ادارية</a>
-                <a class="collapse-item" href="#">حركة البيع والشراء</a>
-                <a class="collapse-item" href="#">ايجار معدات</a>
-                <a class="collapse-item" href="#">ايجار مكاتب</a> --}}
-
             </div>
         </div>
     </li>

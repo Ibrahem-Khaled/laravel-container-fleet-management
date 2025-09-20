@@ -18,6 +18,7 @@
     <style>
         body {
             font-family: "Tajawal", sans-serif !important;
+            text-align: right !important;
         }
 
         /* إعدادات الطباعة */
@@ -92,7 +93,7 @@
     <div id="wrapper">
         @include('layouts.sidebar')
 
-        <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content-wrapper" class="d-flex flex-column" dir="rtl">
             <div id="content">
                 @include('layouts.header')
                 @yield('actions') {{-- الأزرار الخاصة بكل صفحة --}}
@@ -127,6 +128,7 @@
     <script src="{{ asset('assets/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
     <script src="{{ asset('assets/js/sb-admin-2.min.js') }}"></script>
     <script src="{{ asset('assets/vendor/chart.js/Chart.min.js') }}"></script>
+    <script src="{{ asset('assets/js/translation-helper.js') }}"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 

@@ -34,6 +34,10 @@ class Car extends BaseModel
     {
         return $this->hasMany(Tip::class);
     }
+    public function dailyTransactions()
+    {
+        return $this->morphMany(DailyTransaction::class, 'transactionable');
+    }
 
     // علاقة كل سيارة بسجلات تغييرات الزيت والقراءات السابقة
     public function oilChanges(): HasMany

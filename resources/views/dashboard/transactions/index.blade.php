@@ -83,9 +83,10 @@
                                 <th>الوارد</th>
                                 <th>المنصرف</th>
                                 <th>الضريبة</th>
+                                <th>من عهدة</th>
                                 <th>مرتبطة بـ</th>
                                 <th>ملاحظات</th>
-                                <th>تاريخ الإنشاء</th>
+                                <th>تاريخ الحركة</th>
                                 <th>الإجراءات</th>
                             </tr>
                         </thead>
@@ -128,6 +129,21 @@
                                         @endif
                                     </td>
 
+                                    {{-- من عهدة --}}
+                                    <td>
+                                        @if ($transaction->custodyAccount)
+                                            <span class="badge badge-success">
+                                                {{ $transaction->custodyAccount->owner->name }}
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">
+                                                {{ $transaction->custodyAccount->owner->role->name ?? 'بدون دور' }}
+                                            </small>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+
                                     {{-- مرتبطة بـ --}}
                                     <td>
                                         @if ($transaction->transactionable)
@@ -155,7 +171,17 @@
 
                                     <td>{{ $transaction->notes ?? 'لا توجد ملاحظات' }}</td>
 
-                                    <td>{{ $transaction->created_at->format('Y-m-d') }}</td>
+                                    <td>
+                                        @if($transaction->transaction_date)
+                                            <span class="text-primary">{{ $transaction->transaction_date->format('Y-m-d H:i') }}</span>
+                                            <br>
+                                            <small class="text-muted">مخصص</small>
+                                        @else
+                                            <span class="text-secondary">{{ $transaction->created_at->format('Y-m-d H:i') }}</span>
+                                            <br>
+                                            <small class="text-muted">افتراضي</small>
+                                        @endif
+                                    </td>
 
                                     {{-- الإجراءات --}}
                                     <td>
@@ -177,7 +203,7 @@
                                             compact('transaction', 'transactionable_config'))
                                         @include(
                                             'dashboard.transactions.modals.edit',
-                                            compact('transaction', 'transactionable_config'))
+                                            compact('transaction', 'transactionable_config', 'custody_accounts'))
                                         @include(
                                             'dashboard.transactions.modals.delete',
                                             compact('transaction'))
@@ -185,7 +211,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center">لا توجد حركات مالية لعرضها حاليًا.</td>
+                                    <td colspan="9" class="text-center">لا توجد حركات مالية لعرضها حاليًا.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -199,7 +225,7 @@
         </div>
     </div>
 
-    @include('dashboard.transactions.modals.create', compact('transactionable_config'))
+    @include('dashboard.transactions.modals.create', compact('transactionable_config', 'custody_accounts'))
     @include('dashboard.transactions.modals.transfer', compact('transactionable_config'))
 @endsection
 
@@ -262,17 +288,74 @@
                 }
             }
 
-            // عند تغيير "نوع الحركة" (وارد/منصرف)
+            // عند تغيير نوع الحركة، فلترة العهد المتاحة
             $(document).on('change', '.transaction-type-select', function() {
-                filterTransactionableOptions(this);
+                const transactionType = $(this).val();
+                const modalBody = $(this).closest('.modal-body');
+                const custodySelect = modalBody.find('.custody-select');
+                const custodyInfo = modalBody.find('[id^="custody-balance-info"]');
+
+                // إخفاء جميع الخيارات أولاً
+                custodySelect.find('option').not('[value=""]').hide();
+
+                if (transactionType === 'expense') {
+                    // للمنصرفات: إظهار فقط العهد التي لديها رصيد أكبر من 0
+                    custodySelect.find('option').each(function() {
+                        const balance = parseFloat($(this).data('balance') || 0);
+                        if (balance > 0) {
+                            $(this).show();
+                        }
+                    });
+                } else {
+                    // للواردات: إظهار جميع العهد
+                    custodySelect.find('option').show();
+                }
+
+                // إعادة تعيين الاختيار إذا كان مخفياً
+                if (custodySelect.find('option:selected:visible').length === 0) {
+                    custodySelect.val('');
+                    custodyInfo.text('');
+                }
             });
 
-            // عند فتح أي مودال، قم بتشغيل الفلتر للتأكد من الحالة الصحيحة (لمودال التعديل)
-            $('.modal').on('shown.bs.modal', function() {
-                const typeSelect = $(this).find('.transaction-type-select');
-                if (typeSelect.length) {
-                    filterTransactionableOptions(typeSelect);
+            // عند تغيير العهدة المختارة، إظهار معلومات الرصيد
+            $(document).on('change', '.custody-select', function() {
+                const selectedOption = $(this).find('option:selected');
+                const balance = parseFloat(selectedOption.data('balance') || 0);
+                const owner = selectedOption.data('owner') || '';
+                const modalBody = $(this).closest('.modal-body');
+                const custodyInfo = modalBody.find('[id^="custody-balance-info"]');
+
+                if (balance > 0 && owner) {
+                    custodyInfo.html(`<i class="fas fa-wallet text-success"></i> الرصيد الحالي: ${balance.toFixed(2)} ر.س`);
+                } else {
+                    custodyInfo.html('');
                 }
+            });
+
+            // عند تغيير المبلغ، التحقق من الرصيد
+            $(document).on('input', 'input[name="total_amount"]', function() {
+                const amount = parseFloat($(this).val() || 0);
+                const modalBody = $(this).closest('.modal-body');
+                const custodySelect = modalBody.find('.custody-select');
+                const custodyInfo = modalBody.find('[id^="custody-balance-info"]');
+                const selectedOption = custodySelect.find('option:selected');
+                const balance = parseFloat(selectedOption.data('balance') || 0);
+
+                if (amount > 0 && balance > 0) {
+                    if (amount > balance) {
+                        custodyInfo.html(`<i class="fas fa-exclamation-triangle text-danger"></i> تحذير: المبلغ أكبر من الرصيد المتاح!`);
+                    } else {
+                        custodyInfo.html(`<i class="fas fa-wallet text-success"></i> الرصيد كافي: ${balance.toFixed(2)} ر.س`);
+                    }
+                }
+            });
+
+            // تعيين التاريخ الحالي كقيمة افتراضية عند فتح مودال إضافة حركة جديدة
+            $('#createTransactionModal').on('shown.bs.modal', function() {
+                const now = new Date();
+                const localDateTime = now.toISOString().slice(0, 16);
+                $(this).find('input[name="transaction_date"]').val(localDateTime);
             });
         });
     </script>

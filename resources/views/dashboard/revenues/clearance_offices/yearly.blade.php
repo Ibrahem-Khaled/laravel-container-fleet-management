@@ -36,6 +36,10 @@
             <x-stats-card icon="fas fa-hand-holding-usd" title="إجمالي المبالغ المستلمة" :value="number_format($yearTotals['income'], 2)"
                 color="success" />
             <x-stats-card icon="fas fa-balance-scale-right" title="صافي السنة" :value="number_format($yearTotals['balance'], 2)" :color="$yearTotals['balance'] > 0 ? 'danger' : 'info'" />
+            <x-stats-card icon="fas fa-percentage" title="إجمالي الضرائب" :value="number_format($yearTotals['tax_amount'], 2)"
+                color="primary" />
+            <x-stats-card icon="fas fa-calculator" title="الإجمالي مع الضرائب" :value="number_format($yearTotals['total_with_tax'], 2)"
+                color="info" />
         </div>
 
         <div class="card shadow">
@@ -50,6 +54,9 @@
                             <th>المنقول (حاويات)</th>
                             <th>الوارد (اليومية)</th>
                             <th>الصافي</th>
+                            <th>الضرائب</th>
+                            <th>الإجمالي مع الضرائب</th>
+                            <th>حالة الضرائب</th>
                             <th>رابط الكشف</th>
                         </tr>
                     </thead>
@@ -60,6 +67,22 @@
                                 <td>{{ number_format($r['transported'], 2) }}</td>
                                 <td>{{ number_format($r['income'], 2) }}</td>
                                 <td>{{ number_format($r['balance'], 2) }}</td>
+                                <td>
+                                    <span class="text-warning font-weight-bold">
+                                        {{ number_format($r['tax_calculation']['tax_amount'], 2) }}
+                                    </span>
+                                    <small class="text-muted">({{ $r['tax_calculation']['tax_rate'] }}%)</small>
+                                </td>
+                                <td>
+                                    <span class="text-success font-weight-bold">
+                                        {{ number_format($r['tax_calculation']['total_amount'], 2) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-{{ $r['tax_calculation']['tax_enabled'] ? 'success' : 'danger' }}">
+                                        {{ $r['tax_calculation']['tax_enabled'] ? 'مفعلة' : 'معطلة' }}
+                                    </span>
+                                </td>
                                 <td>
                                     <a class="btn btn-sm btn-outline-secondary"
                                         href="{{ route('revenues.clearance.monthly', ['office' => $office->id, 'year' => $year, 'month' => $r['month']]) }}">

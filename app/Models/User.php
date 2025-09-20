@@ -26,6 +26,7 @@ class User extends Authenticatable implements AuditableContract
         'avatar',
         'role_id',
         'is_active',
+        'tax_enabled',
         'email_verified_at',
         'password',
         'operational_number',
@@ -79,6 +80,11 @@ class User extends Authenticatable implements AuditableContract
         return $this->hasMany(CustomsDeclaration::class, 'clearance_office_id');
     }
 
+    public function taxHistory()
+    {
+        return $this->hasMany(OfficeTaxHistory::class, 'office_id');
+    }
+
     public function drivingTips()
     {
         return $this->hasMany(Tip::class, 'driver_id');
@@ -104,5 +110,21 @@ class User extends Authenticatable implements AuditableContract
         } else {
             return asset('assets/images/auth/user.jpg');
         }
+    }
+
+    /**
+     * التحقق من تفعيل الضرائب للمكتب الجمركي
+     */
+    public function isTaxEnabled(): bool
+    {
+        return $this->tax_enabled ?? true;
+    }
+
+    /**
+     * التحقق من أن المستخدم مكتب تخليص جمركي
+     */
+    public function isClearanceOffice(): bool
+    {
+        return $this->role && $this->role->name === 'clearance_office';
     }
 }

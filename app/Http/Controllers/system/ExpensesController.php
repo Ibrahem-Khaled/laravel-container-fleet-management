@@ -100,8 +100,8 @@ class ExpensesController extends Controller
 
     public function driverTipsReport(Request $request, User $user)
     {
-        // نطاق التاريخ: افتراضيًا من أول شهر لتاريخ توظيف المستخدم (created_at) إلى نهاية الشهر الحالي
-        $from = $request->date('from') ?: optional($user->created_at)->copy()->startOfMonth();
+        // نطاق التاريخ: افتراضيًا الشهر الحالي فقط
+        $from = $request->date('from') ?: Carbon::now()->startOfMonth();
         $to   = $request->date('to')   ?: Carbon::now()->endOfMonth();
 
         // فلاتر اختيارية

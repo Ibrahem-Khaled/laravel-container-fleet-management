@@ -69,27 +69,17 @@
 
         {{-- إحصائيات (كروت قابلة للضغط) --}}
         <div class="row mb-4">
-            @php
-                $badge = [
-                    'wait' => 'secondary',
-                    'transport' => 'info',
-                    'done' => 'success',
-                    'rent' => 'warning',
-                    'storage' => 'dark',
-                ];
-            @endphp
             @foreach ($statuses as $s)
                 <div class="col-xl-2 col-md-4 mb-3">
                     <div class="card gradient-card stats-card shadow h-100 position-relative">
                         <div class="card-body d-flex justify-content-between align-items-center">
                             <div>
-                                <div
-                                    class="text-xs font-weight-bold text-{{ $badge[$s] ?? 'primary' }} text-uppercase mb-1">
-                                    {{ $statusMap[$s] }}
+                                <div class="text-xs font-weight-bold text-{{ \App\Support\ContainerStatusHelper::getStatusColor($s) }} text-uppercase mb-1">
+                                    @containerStatus($s)
                                 </div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $stats[$s] ?? 0 }}</div>
                             </div>
-                            <i class="fas fa-box fa-2x text-gray-300"></i>
+                            <i class="{{ \App\Support\ContainerStatusHelper::getStatusIcon($s) }} fa-2x text-gray-300"></i>
                         </div>
                         <a class="stretched-link" href="{{ route('containers.flow.index', ['status' => $s]) }}"></a>
                     </div>

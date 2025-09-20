@@ -7,6 +7,7 @@ use App\Models\Container;
 use App\Models\CustomsDeclaration;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\TaxCalculationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +59,12 @@ class RevenuesController extends Controller
                 $totalPrice = (int) ($user->containers_total_price ?? 0);
                 $income     = (float) ($user->income_sum ?? 0.0);
                 $user->required_amount = $totalPrice - $income;
+
+                // حساب الضرائب
+                $taxService = new TaxCalculationService();
+                $taxCalculation = $taxService->calculateTaxForOffice($user->id, $user->required_amount);
+                $user->tax_calculation = $taxCalculation;
+
                 return $user;
             });
 
@@ -122,6 +129,11 @@ class RevenuesController extends Controller
         $totalIncome = (float) $incomeTransactions->sum('total_amount');
         $balance     = (float) $transportedContainersSum - $totalIncome;
 
+        // حساب الضرائب للمكتب في هذا الشهر
+        $taxService = new TaxCalculationService();
+        $taxCalculation = $taxService->calculateTaxForOffice($office->id, $balance, $reportDate);
+        $monthlyTaxSummary = $taxService->getMonthlyTaxSummary($office->id, $year, $month);
+
         return view('dashboard.revenues.clearance_offices.monthly', compact(
             'office',
             'reportDate',
@@ -130,7 +142,9 @@ class RevenuesController extends Controller
             'totalValue',
             'totalIncome',
             'transportedContainersSum',
-            'balance'
+            'balance',
+            'taxCalculation',
+            'monthlyTaxSummary'
         ));
     }
 
@@ -157,16 +171,22 @@ class RevenuesController extends Controller
             ->groupBy('m')
             ->pluck('total', 'm');
 
-        $rows = collect(range(1, 12))->map(function ($m) use ($containersByMonth, $incomeByMonth) {
+        $rows = collect(range(1, 12))->map(function ($m) use ($containersByMonth, $incomeByMonth, $office, $year) {
             $transported = (float) ($containersByMonth[$m] ?? 0);
             $income      = (float) ($incomeByMonth[$m] ?? 0);
             $balance     = $transported - $income;
+
+            // حساب الضرائب لكل شهر
+            $taxService = new TaxCalculationService();
+            $monthDate = Carbon::create($year, $m, 1);
+            $taxCalculation = $taxService->calculateTaxForOffice($office->id, $balance, $monthDate);
 
             return compact('m') + [
                 'month'       => $m,
                 'transported' => $transported,
                 'income'      => $income,
                 'balance'     => $balance,
+                'tax_calculation' => $taxCalculation,
             ];
         });
 
@@ -174,6 +194,8 @@ class RevenuesController extends Controller
             'transported' => $rows->sum('transported'),
             'income'      => $rows->sum('income'),
             'balance'     => $rows->sum('balance'),
+            'tax_amount'  => $rows->sum('tax_calculation.tax_amount'),
+            'total_with_tax' => $rows->sum('tax_calculation.total_amount'),
         ];
 
         return view('dashboard.revenues.clearance_offices.yearly', [

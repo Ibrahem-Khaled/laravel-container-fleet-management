@@ -66,6 +66,22 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
+                                <label for="edit-tax_enabled-{{ $office->id }}">تفعيل الضرائب <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-control" id="edit-tax_enabled-{{ $office->id }}" name="tax_enabled"
+                                    required>
+                                    <option value="1"
+                                        {{ old('tax_enabled', $office->tax_enabled) == 1 ? 'selected' : '' }}>مفعلة</option>
+                                    <option value="0"
+                                        {{ old('tax_enabled', $office->tax_enabled) == 0 ? 'selected' : '' }}>معطلة
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
                                 <label>تغيير شعار المكتب (Avatar)</label>
                                 <div class="custom-file">
                                     <input type="file" class="custom-file-input"

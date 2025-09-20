@@ -59,6 +59,8 @@
                                 <th>إجمالي القيمة</th>
                                 <th>الوارد</th>
                                 <th>المطلوب</th>
+                                <th>الضرائب</th>
+                                <th>الإجمالي مع الضرائب</th>
                                 <th>الإجراءات</th>
                             </tr>
                         </thead>
@@ -90,29 +92,40 @@
                                         class="font-weight-bold {{ ($office->required_amount ?? 0) > 0 ? 'text-danger' : 'text-success' }}">
                                         {{ number_format($office->required_amount ?? 0, 2) }}
                                     </td>
+                                    <td>
+                                        <span class="text-warning font-weight-bold">
+                                            {{ number_format($office->tax_calculation['tax_amount'], 2) }}
+                                        </span>
+                                        <br>
+                                        <small class="text-muted">
+                                            <span class="badge badge-{{ $office->tax_calculation['tax_enabled'] ? 'success' : 'danger' }}">
+                                                {{ $office->tax_calculation['tax_enabled'] ? 'مفعلة' : 'معطلة' }}
+                                            </span>
+                                            ({{ $office->tax_calculation['tax_rate'] }}%)
+                                        </small>
+                                    </td>
+                                    <td class="text-success font-weight-bold">
+                                        {{ number_format($office->tax_calculation['total_amount'], 2) }}
+                                    </td>
                                     <td class="text-center">
-
-                                        {{-- زر كشف الحساب (منسدل) --}}
-                                        <div class="btn-group">
-                                            <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle"
-                                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                <i class="fas fa-file-invoice"></i> كشف
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-right">
-                                                <a href="{{ route('revenues.clearance.monthly', $office->id) }}" class="dropdown-item">
-                                                    <i class="fas fa-calendar-alt"></i> كشف شهري
-                                                </a>
-                                                <a href="{{ route('revenues.clearance.yearly', $office->id) }}" class="dropdown-item">
-                                                    <i class="fas fa-calendar"></i> كشف سنوي
-                                                </a>
-                                            </div>
+                                        {{-- أزرار التقارير واضحة --}}
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ route('revenues.clearance.monthly', $office->id) }}"
+                                               class="btn btn-sm btn-primary"
+                                               title="الكشف الشهري">
+                                                <i class="fas fa-calendar-alt"></i> شهري
+                                            </a>
+                                            <a href="{{ route('revenues.clearance.yearly', $office->id) }}"
+                                               class="btn btn-sm btn-success"
+                                               title="الكشف السنوي">
+                                                <i class="fas fa-calendar"></i> سنوي
+                                            </a>
                                         </div>
-
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center">لا توجد بيانات تطابق الفلترة الحالية.</td>
+                                    <td colspan="9" class="text-center">لا توجد بيانات تطابق الفلترة الحالية.</td>
                                 </tr>
                             @endforelse
                         </tbody>

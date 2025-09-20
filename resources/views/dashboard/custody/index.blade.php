@@ -20,14 +20,17 @@
 
         {{-- إحصائيات --}}
         <div class="row mb-4">
+            <x-stats-card icon="fas fa-lock-open" title="عهد مفتوحة" :value="$openCount" color="success" />
+            <x-stats-card icon="fas fa-lock" title="عهد مغلقة" :value="$closedCount" color="secondary" />
+            <x-stats-card icon="fas fa-coins" title="إجمالي الرصيد الافتتاحي" :value="number_format($totalOpeningBalance, 2)" color="primary" />
+            <x-stats-card icon="fas fa-wallet" title="إجمالي الرصيد الحالي" :value="number_format($totalCurrentBalance, 2)" color="info" />
+        </div>
 
-                <x-stats-card icon="fas fa-lock-open" title="عهد مفتوحة" :value="$openCount" color="success" />
-
-                <x-stats-card icon="fas fa-lock" title="عهد مغلقة" :value="$closedCount" color="secondary" />
-
-                <x-stats-card icon="fas fa-user-tag" title="أدوار لديها عهد" :value="$roles->count()" color="info" />
-
-                <x-stats-card icon="fas fa-coins" title="تنبيه رصيد" :value="'—'" color="warning" />
+        <div class="row mb-4">
+            <x-stats-card icon="fas fa-user-tag" title="أدوار لديها عهد" :value="$roles->count()" color="warning" />
+            <x-stats-card icon="fas fa-file-invoice-dollar" title="إجمالي الحركات" :value="$totalTransactions" color="dark" />
+            <x-stats-card icon="fas fa-chart-line" title="الفرق في الرصيد" :value="number_format($totalCurrentBalance - $totalOpeningBalance, 2)" color="danger" />
+            <x-stats-card icon="fas fa-percentage" title="نسبة التغيير" :value="number_format($totalOpeningBalance > 0 ? (($totalCurrentBalance - $totalOpeningBalance) / $totalOpeningBalance) * 100 : 0, 2) . '%'" color="success" />
         </div>
 
         <div class="card shadow mb-4">
@@ -90,6 +93,7 @@
                                 <th>الدور</th>
                                 <th>افتتاحي</th>
                                 <th>الرصيد الحالي</th>
+                                <th>عدد الحركات</th>
                                 <th>الحالة</th>
                                 <th>إجراءات</th>
                             </tr>
@@ -111,6 +115,11 @@
 
                                     <td class="align-middle">{{ number_format($account->opening_balance, 2) }}</td>
                                     <td class="align-middle">{{ number_format($account->currentBalance(), 2) }}</td>
+                                    <td class="align-middle">
+                                        <span class="badge badge-info">
+                                            {{ $account->dailyTransactions()->count() }}
+                                        </span>
+                                    </td>
                                     <td class="align-middle">
                                         <span
                                             class="badge badge-{{ $account->status === 'open' ? 'success' : 'secondary' }}">
@@ -141,7 +150,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center">لا توجد عهد</td>
+                                    <td colspan="7" class="text-center">لا توجد عهد</td>
                                 </tr>
                             @endforelse
                         </tbody>

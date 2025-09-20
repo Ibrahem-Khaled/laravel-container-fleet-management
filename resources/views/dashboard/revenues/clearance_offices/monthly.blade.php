@@ -61,6 +61,84 @@
             <x-stats-card icon="fas fa-balance-scale-right" title="الصافي المستحق" :value="number_format($balance, 2)" :color="$balance > 0 ? 'danger' : 'info'" />
         </div>
 
+        <!-- Tax Information Card -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-percentage"></i> معلومات الضرائب
+                        </h6>
+                        <span class="badge badge-{{ $taxCalculation['tax_enabled'] ? 'success' : 'danger' }} badge-lg">
+                            {{ $taxCalculation['tax_enabled'] ? 'ضرائب مفعلة' : 'ضرائب معطلة' }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center p-3 border rounded">
+                                    <h5 class="text-primary">{{ number_format($taxCalculation['original_amount'], 2) }}</h5>
+                                    <small class="text-muted">المبلغ الأصلي</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center p-3 border rounded">
+                                    <h5 class="text-warning">{{ number_format($taxCalculation['tax_amount'], 2) }}</h5>
+                                    <small class="text-muted">مبلغ الضريبة ({{ $taxCalculation['tax_rate'] }}%)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center p-3 border rounded">
+                                    <h5 class="text-success">{{ number_format($taxCalculation['total_amount'], 2) }}</h5>
+                                    <small class="text-muted">المبلغ الإجمالي مع الضريبة</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center p-3 border rounded">
+                                    <h5 class="text-info">{{ $monthlyTaxSummary['tax_enabled_days'] }} يوم</h5>
+                                    <small class="text-muted">أيام الضرائب المفعلة</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if($monthlyTaxSummary['periods']->count() > 0)
+                        <div class="mt-4">
+                            <h6 class="font-weight-bold">فترات الضرائب في الشهر:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>من تاريخ</th>
+                                            <th>إلى تاريخ</th>
+                                            <th>عدد الأيام</th>
+                                            <th>حالة الضرائب</th>
+                                            <th>نسبة الضريبة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($monthlyTaxSummary['periods'] as $period)
+                                        <tr>
+                                            <td>{{ $period['start_date']->format('Y-m-d') }}</td>
+                                            <td>{{ $period['end_date']->format('Y-m-d') }}</td>
+                                            <td>{{ $period['days'] }}</td>
+                                            <td>
+                                                <span class="badge badge-{{ $period['tax_enabled'] ? 'success' : 'danger' }}">
+                                                    {{ $period['tax_enabled'] ? 'مفعلة' : 'معطلة' }}
+                                                </span>
+                                            </td>
+                                            <td>{{ $period['tax_rate'] }}%</td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- كتلة: تحديث جماعي لأسعار حاويات بيان محدد -->
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">

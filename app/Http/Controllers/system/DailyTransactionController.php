@@ -4,11 +4,15 @@ namespace App\Http\Controllers\system;
 
 use App\Http\Controllers\Controller;
 use App\Models\DailyTransaction;
+use App\Models\CustodyAccount;
+use App\Models\CustodyLedgerEntry;
 use Illuminate\Http\Request;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Car;
 use App\Models\Container;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class DailyTransactionController extends Controller
 {
@@ -64,11 +68,40 @@ class DailyTransactionController extends Controller
     }
 
     /**
+     * جلب العهد المتاحة حسب نوع الحركة
+     */
+    private function getAvailableCustodyAccounts($transactionType = null)
+    {
+        $query = CustodyAccount::with('owner.role')
+            ->where('status', 'open')
+            ->join('users', 'custody_accounts.user_id', '=', 'users.id')
+            ->orderBy('users.name')
+            ->select('custody_accounts.*');
+
+        // للمنصرفات: فقط العهد التي لديها رصيد كافي
+        if ($transactionType === 'expense') {
+            $query->whereRaw('custody_accounts.opening_balance + (
+                SELECT COALESCE(SUM(
+                    CASE
+                        WHEN direction IN ("issue", "income", "transfer_in", "adjustment") THEN amount
+                        WHEN direction IN ("return", "expense", "transfer_out") THEN -amount
+                        ELSE 0
+                    END
+                ), 0)
+                FROM custody_ledger_entries
+                WHERE custody_ledger_entries.custody_account_id = custody_accounts.id
+            ) > 0');
+        }
+
+        return $query->get();
+    }
+
+    /**
      * عرض الصفحة الرئيسية للحركات المالية مع الإحصائيات والبيانات.
      */
     public function index(Request $request)
     {
-        $query = DailyTransaction::with('transactionable')->latest();
+        $query = DailyTransaction::with(['transactionable', 'custodyAccount.owner'])->latest();
 
         // فلترة حسب النوع أو الحالة الضريبية
         if ($request->filled('type') && in_array($request->type, ['income', 'expense'])) {
@@ -94,8 +127,9 @@ class DailyTransactionController extends Controller
         $stats['net_balance'] = $stats['total_income'] - $stats['total_expense'];
 
         $transactionable_config = $this->getTransactionableModelsConfig();
+        $custody_accounts = $this->getAvailableCustodyAccounts();
 
-        return view('dashboard.transactions.index', compact('transactions', 'stats', 'transactionable_config'));
+        return view('dashboard.transactions.index', compact('transactions', 'stats', 'transactionable_config', 'custody_accounts'));
     }
 
     /**
@@ -142,12 +176,29 @@ class DailyTransactionController extends Controller
             'method' => 'required|in:cash,bank',
             'total_amount' => 'required|numeric|min:0', // نستقبل الإجمالي
             'tax_value' => 'nullable|numeric|min:0|max:100', // الآن هو نسبة الضريبة
+            'custody_account_id' => 'nullable|exists:custody_accounts,id',
+            'transaction_date' => 'nullable|date',
             'notes' => 'nullable|string',
             'transactionable_key' => 'nullable|string',
             'transactionable_id' => 'nullable|integer|required_with:transactionable_key',
         ];
 
         $data = $request->validate($rules);
+
+        // التحقق من الرصيد إذا كانت منصرف من عهدة
+        if ($data['type'] === 'expense' && $data['custody_account_id']) {
+            $custodyAccount = CustodyAccount::find($data['custody_account_id']);
+            if ($custodyAccount) {
+                $currentBalance = $custodyAccount->currentBalance();
+                $totalAmount = $data['total_amount'];
+
+                if ($currentBalance < $totalAmount) {
+                    return redirect()->back()
+                        ->withErrors(['custody_account_id' => 'الرصيد غير كافي في العهدة المحددة. الرصيد الحالي: ' . number_format($currentBalance, 2) . ' ر.س'])
+                        ->withInput();
+                }
+            }
+        }
 
         $taxPercentage = $data['tax_value'] ?? 0;
         $totalAmount = $data['total_amount'];
@@ -171,7 +222,26 @@ class DailyTransactionController extends Controller
             $data['transactionable_id'] = null;
         }
 
-        DailyTransaction::create($data);
+        // إنشاء الحركة مع خصم من رصيد العهدة إذا لزم الأمر
+        DB::transaction(function () use ($data) {
+            $transaction = DailyTransaction::create($data);
+
+            // إذا كانت الحركة مرتبطة بعهدة، أضف سجل في دفتر العهدة
+            if ($data['custody_account_id']) {
+                $direction = $data['type'] === 'income' ? 'income' : 'expense';
+
+                CustodyLedgerEntry::create([
+                    'custody_account_id' => $data['custody_account_id'],
+                    'daily_transaction_id' => $transaction->id,
+                    'direction' => $direction,
+                    'amount' => $data['total_amount'],
+                    'currency' => 'SAR', // يمكن تعديلها حسب النظام
+                    'occurred_at' => $transaction->created_at, // استخدام تاريخ إنشاء اليومية
+                    'created_by' => Auth::id(),
+                    'notes' => $data['notes'] ?? 'حركة يومية: ' . ($data['type'] === 'income' ? 'وارد' : 'منصرف'),
+                ]);
+            }
+        });
 
         return redirect()->route('transactions.index')->with('success', 'تمت إضافة الحركة بنجاح.');
     }
@@ -186,12 +256,34 @@ class DailyTransactionController extends Controller
             'method' => 'required|in:cash,bank',
             'total_amount' => 'required|numeric|min:0',
             'tax_value' => 'nullable|numeric|min:0|max:100', // نسبة الضريبة
+            'custody_account_id' => 'nullable|exists:custody_accounts,id',
+            'transaction_date' => 'nullable|date',
             'notes' => 'nullable|string',
             'transactionable_key' => 'nullable|string',
             'transactionable_id' => 'nullable|integer|required_with:transactionable_key',
         ];
 
         $data = $request->validate($rules);
+
+        // التحقق من الرصيد إذا كانت منصرف من عهدة
+        if ($data['type'] === 'expense' && $data['custody_account_id']) {
+            $custodyAccount = CustodyAccount::find($data['custody_account_id']);
+            if ($custodyAccount) {
+                $currentBalance = $custodyAccount->currentBalance();
+                $totalAmount = $data['total_amount'];
+
+                // إضافة الرصيد الحالي للحركة إذا كانت موجودة مسبقاً
+                if ($dailyTransaction->custody_account_id == $data['custody_account_id'] && $dailyTransaction->type === 'expense') {
+                    $currentBalance += $dailyTransaction->total_amount;
+                }
+
+                if ($currentBalance < $totalAmount) {
+                    return redirect()->back()
+                        ->withErrors(['custody_account_id' => 'الرصيد غير كافي في العهدة المحددة. الرصيد الحالي: ' . number_format($currentBalance, 2) . ' ر.س'])
+                        ->withInput();
+                }
+            }
+        }
 
         $taxPercentage = $data['tax_value'] ?? 0;
         $totalAmount = $data['total_amount'];
@@ -214,7 +306,44 @@ class DailyTransactionController extends Controller
             $data['transactionable_id'] = null;
         }
 
-        $dailyTransaction->update($data);
+        // تحديث الحركة مع تحديث سجل العهدة إذا لزم الأمر
+        DB::transaction(function () use ($data, $dailyTransaction) {
+            $dailyTransaction->update($data);
+
+            // إذا كانت الحركة مرتبطة بعهدة، حدث أو أنشئ سجل في دفتر العهدة
+            if ($data['custody_account_id']) {
+                $direction = $data['type'] === 'income' ? 'income' : 'expense';
+
+                // البحث عن سجل موجود أو إنشاء جديد
+                $ledgerEntry = CustodyLedgerEntry::where('daily_transaction_id', $dailyTransaction->id)->first();
+
+                if ($ledgerEntry) {
+                    // تحديث السجل الموجود
+                    $ledgerEntry->update([
+                        'custody_account_id' => $data['custody_account_id'],
+                        'direction' => $direction,
+                        'amount' => $data['total_amount'],
+                        'occurred_at' => $dailyTransaction->created_at, // استخدام تاريخ إنشاء اليومية
+                        'notes' => $data['notes'] ?? 'حركة يومية: ' . ($data['type'] === 'income' ? 'وارد' : 'منصرف'),
+                    ]);
+                } else {
+                    // إنشاء سجل جديد
+                    CustodyLedgerEntry::create([
+                        'custody_account_id' => $data['custody_account_id'],
+                        'daily_transaction_id' => $dailyTransaction->id,
+                        'direction' => $direction,
+                        'amount' => $data['total_amount'],
+                        'currency' => 'SAR',
+                        'occurred_at' => now(),
+                        'created_by' => Auth::id(),
+                        'notes' => $data['notes'] ?? 'حركة يومية: ' . ($data['type'] === 'income' ? 'وارد' : 'منصرف'),
+                    ]);
+                }
+            } else {
+                // إذا لم تعد الحركة مرتبطة بعهدة، احذف السجل الموجود
+                CustodyLedgerEntry::where('daily_transaction_id', $dailyTransaction->id)->delete();
+            }
+        });
 
         return redirect()->route('transactions.index')->with('success', 'تم تحديث الحركة بنجاح.');
     }
@@ -224,7 +353,14 @@ class DailyTransactionController extends Controller
      */
     public function destroy(DailyTransaction $dailyTransaction)
     {
-        $dailyTransaction->delete();
+        DB::transaction(function () use ($dailyTransaction) {
+            // حذف سجل العهدة المرتبط إذا كان موجوداً
+            CustodyLedgerEntry::where('daily_transaction_id', $dailyTransaction->id)->delete();
+
+            // حذف الحركة
+            $dailyTransaction->delete();
+        });
+
         return redirect()->route('transactions.index')->with('success', 'تم حذف الحركة بنجاح.');
     }
 }

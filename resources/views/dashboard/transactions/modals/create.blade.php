@@ -28,10 +28,20 @@
 
                     <div class="row">
                         <div class="col-md-6 form-group">
+                            <label>تاريخ الحركة (اختياري)</label>
+                            <input type="datetime-local" class="form-control" name="transaction_date"
+                                   value="{{ old('transaction_date') }}"
+                                   title="اتركه فارغاً ليستخدم التاريخ الحالي">
+                            <small class="text-muted">اتركه فارغاً ليستخدم التاريخ الحالي</small>
+                        </div>
+                        <div class="col-md-6 form-group">
                             <label>المبلغ الإجمالي (شامل الضريبة)</label>
                             <input type="number" step="0.01" class="form-control" name="total_amount" required
                                 placeholder="أدخل المبلغ الإجمالي">
                         </div>
+                    </div>
+
+                    <div class="row">
                         <div class="col-md-6 form-group">
                             <label>هل بضريبة</label>
                             <select class="form-control" name="tax_value" required>
@@ -42,6 +52,21 @@
                     </div>
 
                     <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>من عهدة (اختياري)</label>
+                            <select class="form-control custody-select" name="custody_account_id" id="custody_account_id">
+                                <option value="">-- لا يوجد --</option>
+                                @foreach ($custody_accounts as $custody)
+                                    <option value="{{ $custody->id }}"
+                                        data-balance="{{ $custody->currentBalance() }}"
+                                        data-owner="{{ $custody->owner->name }}">
+                                        {{ $custody->owner->name }} - {{ $custody->owner->role->name ?? 'بدون دور' }}
+                                        (رصيد: {{ number_format($custody->currentBalance(), 2) }} ر.س)
+                                    </option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted" id="custody-balance-info"></small>
+                        </div>
                         <div class="col-md-6 form-group">
                             <label>مرتبطة بـ (اختياري)</label>
                             <select class="form-control transactionable-type-select" name="transactionable_key">
@@ -54,7 +79,10 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-6 form-group">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 form-group">
                             <label>السجل المحدد</label>
                             <select class="form-control transactionable-id-select" name="transactionable_id" disabled>
                                 <option value="">-- اختر النوع أولاً --</option>

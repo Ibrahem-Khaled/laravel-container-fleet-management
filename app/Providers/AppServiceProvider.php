@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Carbon\Carbon;
 use Illuminate\Pagination\Paginator;
+use App\Support\BladeTranslationDirectives;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,5 +25,7 @@ class AppServiceProvider extends ServiceProvider
         Carbon::setLocale(app()->getLocale() ?: 'ar'); // يعرب diffForHumans()
         Paginator::useBootstrapFour(); // أو useBootstrap()
 
+        // تسجيل توجيهات الترجمة المخصصة
+        BladeTranslationDirectives::register();
     }
 }
