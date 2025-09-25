@@ -73,17 +73,21 @@ class ContainerFlowController extends Controller
 
     public function change(\App\Http\Requests\ContainerFlowChangeRequest $request, \App\Models\Container $container)
     {
-        DB::transaction(function () use ($request, $container) {
-            $from = $container->status;
-            $to   = $request->new_status;
+        $from = $container->status;
+        $to   = $request->new_status;
 
-            // لو رجعنا خطوة (إلى "انتظار") نحذف آخر Tip للحالة السابقة
+        DB::transaction(function () use ($request, $container, $from, $to) {
+            // لو رجعنا خطوة (إلى "انتظار") نحذف آخر Tip للحالة السابقة وأوامر النقل
             if ($to === 'wait' && in_array($from, ['transport', 'storage', 'done', 'rent'])) {
+                // حذف آخر Tip للحالة السابقة
                 $lastTip = \App\Models\Tip::where('container_id', $container->id)
                     ->where('type', $from)->latest('id')->first();
                 if ($lastTip) {
                     $lastTip->delete();
                 }
+
+                // حذف جميع أوامر النقل المرتبطة بالحاوية
+                \App\Models\ContainerTransferOrder::where('container_id', $container->id)->delete();
             }
 
             // تحديث حالة الحاوية
@@ -101,7 +105,12 @@ class ContainerFlowController extends Controller
             }
         });
 
-        return back()->with('success', 'تم تنفيذ العملية بنجاح.');
+        $message = 'تم تنفيذ العملية بنجاح.';
+        if ($to === 'wait' && in_array($from, ['transport', 'storage', 'done', 'rent'])) {
+            $message = 'تم إرجاع الحاوية إلى حالة الانتظار وإلغاء جميع أوامر النقل المرتبطة بها.';
+        }
+
+        return back()->with('success', $message);
     }
 
     // AJAX: سيارات سائق

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DailyTransaction;
 use App\Models\CustodyAccount;
 use App\Models\CustodyLedgerEntry;
+use App\Services\TaxCalculationService;
 use Illuminate\Http\Request;
 use App\Models\Role;
 use App\Models\User;
@@ -16,6 +17,12 @@ use Illuminate\Support\Facades\Auth;
 
 class DailyTransactionController extends Controller
 {
+    protected TaxCalculationService $taxService;
+
+    public function __construct(TaxCalculationService $taxService)
+    {
+        $this->taxService = $taxService;
+    }
     /**
      * دالة مركزية لتحديد كل الموديلات القابلة للربط.
      * تحتوي الآن على 'contexts' لتحديد متى يظهر كل خيار.
@@ -45,14 +52,17 @@ class DailyTransactionController extends Controller
 
         foreach ($roles as $role) {
             // مثال: نفترض أن لدينا دور "عميل" ودور "موظف"
-            if (stripos($role->name, 'clearance_office') !== false || stripos($role->description, 'مكتب تخليص جمركي') !== false) {
+            $roleName = (string) ($role->name ?? '');
+            $roleDescription = (string) ($role->description ?? '');
+
+            if (stripos($roleName, 'clearance_office') !== false || stripos($roleDescription, 'مكتب تخليص جمركي') !== false) {
                 // الأدوار الاثنين قد تكون للاثنين
                 $contexts = ['income'];
-                $name = 'مكتب - ' . $role->description;
+                $name = 'مكتب - ' . $roleDescription;
             } else {
                 // الأدوار الأخرى قد تكون للاثنين
                 $contexts = ['expense'];
-                $name = 'مستخدم - ' . $role->description;
+                $name = 'مستخدم - ' . $roleDescription;
             }
 
             $config['user_role_' . $role->id] = [
@@ -201,13 +211,20 @@ class DailyTransactionController extends Controller
         }
 
         $taxPercentage = $data['tax_value'] ?? 0;
-        $totalAmount = $data['total_amount'];
+        $baseAmount = $data['total_amount']; // المبلغ الأساسي الذي يدخله المستخدم
 
         if ($taxPercentage > 0) {
-            // الحساب: المبلغ الأساسي = الإجمالي / (1 + (نسبة الضريبة / 100))
-            $data['amount'] = $totalAmount / (1 + ($taxPercentage / 100));
+            // استخدام TaxCalculationService لحساب الضرائب
+            $taxResult = $this->taxService->calculateTaxForOffice(
+                $data['transactionable_id'] ?? null,
+                $baseAmount,
+                $data['transaction_date'] ?? null
+            );
+
+            $data['amount'] = $baseAmount;
+            $data['total_amount'] = $taxResult['total_amount'];
         } else {
-            $data['amount'] = $totalAmount;
+            $data['amount'] = $baseAmount;
             $data['tax_value'] = 0; // نضمن أنها صفر إذا كانت فارغة
         }
 
@@ -286,12 +303,20 @@ class DailyTransactionController extends Controller
         }
 
         $taxPercentage = $data['tax_value'] ?? 0;
-        $totalAmount = $data['total_amount'];
+        $baseAmount = $data['total_amount']; // المبلغ الأساسي الذي يدخله المستخدم
 
         if ($taxPercentage > 0) {
-            $data['amount'] = $totalAmount / (1 + ($taxPercentage / 100));
+            // استخدام TaxCalculationService لحساب الضرائب
+            $taxResult = $this->taxService->calculateTaxForOffice(
+                $data['transactionable_id'] ?? null,
+                $baseAmount,
+                $data['transaction_date'] ?? null
+            );
+
+            $data['amount'] = $baseAmount;
+            $data['total_amount'] = $taxResult['total_amount'];
         } else {
-            $data['amount'] = $totalAmount;
+            $data['amount'] = $baseAmount;
             $data['tax_value'] = 0;
         }
 

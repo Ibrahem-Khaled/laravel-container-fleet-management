@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\OfficeTaxHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class ClearanceOfficeController extends Controller
@@ -56,6 +57,9 @@ class ClearanceOfficeController extends Controller
         $clearanceOfficeRole = Role::where('name', 'clearance_office')->firstOrFail();
         $validated['role_id'] = $clearanceOfficeRole->id;
 
+        // تعيين قيمة افتراضية للراتب إذا كان فارغاً
+        $validated['salary'] = $validated['salary'] ?? 0;
+
         // لا نطلب كلمة مرور، يمكن تركها فارغة
         // $validated['password'] = Hash::make(Str::random(10));
 
@@ -72,7 +76,7 @@ class ClearanceOfficeController extends Controller
             now(),
             15.00,
             'إنشاء مكتب جديد',
-            auth()->id()
+            Auth::id()
         );
 
         return redirect()->route('clearance-offices.index')->with('success', 'تمت إضافة مكتب التخليص بنجاح.');
@@ -106,7 +110,7 @@ class ClearanceOfficeController extends Controller
                 now(),
                 15.00,
                 'تعديل حالة الضرائب من خلال التعديل',
-                auth()->id()
+                Auth::id()
             );
         }
 
@@ -151,7 +155,7 @@ class ClearanceOfficeController extends Controller
             now(),
             15.00,
             'تبديل حالة الضرائب من خلال الزر',
-            auth()->id()
+            Auth::id()
         );
 
         $status = $clearance_office->tax_enabled ? 'مفعلة' : 'معطلة';
@@ -179,7 +183,7 @@ class ClearanceOfficeController extends Controller
                     now(),
                     15.00,
                     'تفعيل الضرائب لجميع المكاتب',
-                    auth()->id()
+                    Auth::id()
                 );
                 $updatedCount++;
             }
@@ -209,7 +213,7 @@ class ClearanceOfficeController extends Controller
                     now(),
                     15.00,
                     'إلغاء تفعيل الضرائب لجميع المكاتب',
-                    auth()->id()
+                    Auth::id()
                 );
                 $updatedCount++;
             }

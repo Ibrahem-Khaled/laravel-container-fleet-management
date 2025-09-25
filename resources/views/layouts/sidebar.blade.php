@@ -95,7 +95,7 @@
 
     {{-- ادارة العملاء --}}
     @php
-        $clientsOpen = request()->routeIs('clearance-offices.*') || request()->is('clients/reports*');
+        $clientsOpen = request()->routeIs('clearance-offices.*') || request()->routeIs('reports.client-financial*');
     @endphp
     <li class="nav-item {{ $clientsOpen ? 'active' : '' }}">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#customs"
@@ -106,9 +106,17 @@
         <div id="customs" class="collapse {{ $clientsOpen ? 'show' : '' }}" aria-labelledby="headingOperations" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <a class="collapse-item {{ request()->routeIs('clearance-offices.*') ? 'active' : '' }}" href="{{ route('clearance-offices.index') }}">اضافة بيان جمركي</a>
-                <a class="collapse-item {{ request()->is('clients/reports*') ? 'active' : '' }}" href="#">التقارير المالية لعملاء</a>
+                <a class="collapse-item {{ request()->routeIs('reports.client-financial*') ? 'active' : '' }}" href="{{ route('reports.client-financial') }}">التقارير المالية للعملاء</a>
             </div>
         </div>
+    </li>
+
+    {{-- الحمد لله --}}
+    <li class="nav-item {{ request()->routeIs('alhamdulillah.*') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('alhamdulillah.index') }}">
+            <i class="fas fa-fw fa-hands-praying"></i>
+            <span>الحمد لله</span>
+        </a>
     </li>
 
     {{-- الادارة المالية --}}

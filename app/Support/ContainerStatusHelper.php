@@ -111,8 +111,8 @@ class ContainerStatusHelper
     {
         $workflow = [
             'wait' => ['transport', 'storage', 'rent'],
-            'transport' => ['done', 'storage'],
-            'done' => ['rent', 'storage'],
+            'transport' => ['done', 'storage', 'wait'], // إضافة العودة للانتظار
+            'done' => ['rent', 'storage', 'wait'], // إضافة العودة للانتظار
             'rent' => ['wait', 'storage'],
             'storage' => ['wait', 'transport', 'rent']
         ];

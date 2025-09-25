@@ -144,10 +144,10 @@
                                     // خريطة الانتقالات المسموح بها
                                     $allowedTransitions = [
                                         'wait' => ['transport'],
-                                        'transport' => ['storage', 'done'],
-                                        'storage' => ['wait'],
-                                        'done' => ['wait'],
-                                        'rent' => ['wait'],
+                                        'transport' => ['storage', 'done', 'wait'], // إضافة العودة للانتظار
+                                        'storage' => ['wait', 'transport'], // إضافة العودة للانتظار
+                                        'done' => ['wait', 'rent'], // إضافة العودة للانتظار
+                                        'rent' => ['wait', 'storage'], // إضافة العودة للانتظار
                                     ];
                                     $allowedForThis = $allowedTransitions[$container->status] ?? ['transport'];
                                 @endphp
@@ -287,9 +287,7 @@
                                                             </div>
                                                             <div class="form-group col-md-8 d-flex align-items-end">
                                                                 <small class="text-muted">
-                                                                    * الانتقالات المسموح بها: انتظار → نقل، نقل → (تخزين/تم
-                                                                    التسليم)، تخزين/تم التسليم → انتظار. عند الرجوع إلى
-                                                                    "انتظار" يتم حذف الـTip الأخير للحالة السابقة.
+                                                                    * يمكن العودة إلى حالة "انتظار" من أي حالة أخرى. عند العودة للانتظار سيتم حذف آخر Tip وأوامر النقل المرتبطة بالحاوية.
                                                                 </small>
                                                             </div>
                                                         </div>
@@ -413,6 +411,33 @@
                 $carSelect.prop('disabled', false);
             } else {
                 $driverSel.trigger('change'); // أعد الفلترة حسب السائق المختار
+            }
+        });
+
+        // تحذير عند اختيار العودة للانتظار
+        $(document).on('change', '.new-status-select', function() {
+            const $modal = $(this).closest('.modal-content');
+            const $submitBtn = $modal.find('button[type="submit"]');
+            const selectedStatus = $(this).val();
+
+            // إزالة التحذيرات السابقة
+            $modal.find('.alert-warning').remove();
+
+            if (selectedStatus === 'wait') {
+                // إضافة تحذير
+                const warningHtml = `
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <strong>تحذير:</strong> عند العودة إلى حالة "انتظار" سيتم حذف آخر Tip وأوامر النقل المرتبطة بالحاوية.
+                    </div>
+                `;
+                $(this).closest('.form-group').after(warningHtml);
+
+                // تغيير لون زر التنفيذ
+                $submitBtn.removeClass('btn-secondary').addClass('btn-warning');
+            } else {
+                // إعادة الزر للحالة العادية
+                $submitBtn.removeClass('btn-warning').addClass('btn-secondary');
             }
         });
     </script>

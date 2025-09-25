@@ -18,6 +18,89 @@
 
         @include('components.alerts')
 
+        {{-- ملخص رؤوس الأموال --}}
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    إجمالي رؤوس الأموال
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ number_format($totalCapital, 2) }} ر.س
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-coins fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    عدد الشركاء النشطين
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ $partners->where('is_active', true)->count() }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-users fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    متوسط رأس المال
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ $partners->count() > 0 ? number_format($totalCapital / $partners->count(), 2) : '0.00' }} ر.س
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    إجمالي الحركات
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ $partners->sum('movements_count') }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-exchange-alt fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- الأدوات --}}
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between">
@@ -41,13 +124,34 @@
             </div>
 
             <div class="card-body">
-                {{-- بحث --}}
+                {{-- بحث وفلترة --}}
                 <form action="{{ route('partners.index') }}" method="GET" class="mb-3">
-                    <div class="input-group">
-                        <input name="search" class="form-control" placeholder="ابحث بالاسم أو المستخدم..."
-                            value="{{ request('search') }}">
-                        <div class="input-group-append">
-                            <button class="btn btn-primary"><i class="fas fa-search"></i> بحث</button>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input name="search" class="form-control" placeholder="ابحث بالاسم أو المستخدم أو البريد الإلكتروني..."
+                                    value="{{ request('search') }}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary">
+                                        <i class="fas fa-search"></i> بحث
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="btn-group w-100" role="group">
+                                <a href="{{ route('partners.index') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-list"></i> الكل
+                                </a>
+                                <a href="{{ route('partners.index', ['filter' => 'active']) }}"
+                                   class="btn btn-outline-success {{ request('filter') == 'active' ? 'active' : '' }}">
+                                    <i class="fas fa-check-circle"></i> النشطين
+                                </a>
+                                <a href="{{ route('partners.index', ['filter' => 'inactive']) }}"
+                                   class="btn btn-outline-warning {{ request('filter') == 'inactive' ? 'active' : '' }}">
+                                    <i class="fas fa-times-circle"></i> غير النشطين
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -61,8 +165,9 @@
                                 <th>المستخدم</th>
                                 <th>الدور</th>
                                 <th>الحركات</th>
-                                <th>الرصيد الحالي</th>
-                                <th>النسبة</th> {{-- عمود النسبة --}}
+                                <th>رأس المال الحالي</th>
+                                <th>النسبة من الإجمالي</th>
+                                <th>الحالة</th>
                                 <th>إجراءات</th>
                             </tr>
                         </thead>
@@ -70,35 +175,59 @@
                             @forelse($partners as $p)
                                 <tr>
                                     <td>
-                                        {{ $p->name }}
-                                        @unless ($p->is_active)
-                                            <span class="badge badge-secondary">غير نشط</span>
-                                        @endunless
+                                        <strong>{{ $p->name }}</strong>
                                     </td>
-                                    <td>{{ optional($p->user)->name ?? '-' }} <small
-                                            class="text-muted">{{ optional($p->user)->email }}</small></td>
-                                    <td>{{ optional($p->user->role)->name ?? '-' }}</td>
-                                    <td>{{ $p->movements_count }}</td>
-                                    <td>{{ number_format($p->currentBalance(), 2) }}</td>
-                                    <td>{{ number_format($p->percentage, 2) }}%</td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ optional($p->user)->name ?? '-' }}</strong>
+                                            @if(optional($p->user)->email)
+                                                <br><small class="text-muted">{{ $p->user->email }}</small>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-info">{{ optional($p->user->role)->description ?? optional($p->user->role)->name ?? '-' }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-secondary">{{ $p->movements_count }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="font-weight-bold {{ $p->currentBalance() >= 0 ? 'text-success' : 'text-danger' }}">
+                                                {{ number_format($p->currentBalance(), 2) }} ر.س
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress mr-2" style="width: 60px; height: 20px;">
+                                                <div class="progress-bar {{ $p->percentage > 0 ? 'bg-primary' : 'bg-secondary' }}"
+                                                     style="width: {{ min($p->percentage, 100) }}%"></div>
+                                            </div>
+                                            <span class="font-weight-bold">{{ number_format($p->percentage, 1) }}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if($p->is_active)
+                                            <span class="badge badge-success">نشط</span>
+                                        @else
+                                            <span class="badge badge-secondary">غير نشط</span>
+                                        @endif
+                                    </td>
 
                                     <td>
-                                        <a href="{{ route('partners.movements.index', $p) }}" class="btn btn-sm btn-info">
-                                            <i class="fas fa-list"></i> الحركات
-                                        </a>
-
-                                        {{-- تعديل --}}
-                                        <button class="btn btn-sm btn-primary" data-toggle="modal"
-                                            data-target="#editPartner{{ $p->id }}">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-
-                                        {{-- حذف --}}
-                                        <form action="{{ route('partners.destroy', $p) }}" method="POST" class="d-inline"
-                                            onsubmit="return confirm('حذف الشريك؟');">
-                                            @csrf @method('DELETE')
-                                            <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-                                        </form>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ route('partners.movements.index', $p) }}" class="btn btn-sm btn-info" title="عرض حركات رأس المال">
+                                                <i class="fas fa-coins"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#editPartner{{ $p->id }}" title="تعديل الشريك">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <form action="{{ route('partners.destroy', $p) }}" method="POST" class="d-inline" onsubmit="return confirm('حذف الشريك؟');">
+                                                @csrf @method('DELETE')
+                                                <button class="btn btn-sm btn-danger" title="حذف الشريك"><i class="fas fa-trash"></i></button>
+                                            </form>
+                                        </div>
 
                                         {{-- مودال تعديل --}}
                                         <div class="modal fade" id="editPartner{{ $p->id }}">
@@ -148,15 +277,34 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center">لا يوجد شركاء</td>
+                                    <td colspan="8" class="text-center py-4">
+                                        <div class="text-muted">
+                                            <i class="fas fa-users fa-3x mb-3"></i>
+                                            <p>لا يوجد شركاء مسجلين</p>
+                                        </div>
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
 
-                <div class="d-flex justify-content-center">
-                    {{ $partners->links() }}
+                {{-- معلومات الصفحة --}}
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            عرض {{ $partners->firstItem() ?? 0 }} إلى {{ $partners->lastItem() ?? 0 }} من أصل {{ $partners->total() }} شريك
+                        </small>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        <small class="text-muted">
+                            الصفحة {{ $partners->currentPage() }} من {{ $partners->lastPage() }}
+                        </small>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $partners->appends(request()->query())->links() }}
                 </div>
             </div>
         </div>

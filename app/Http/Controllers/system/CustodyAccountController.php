@@ -138,8 +138,8 @@ final class CustodyAccountController extends Controller
                 'transactionable_id'   => $account->id,
                 'method'       => $method,       // نقدي/بنك
                 'amount'       => $amount,       // المبلغ الأساسي
-                'tax_value'    => 0,             // عدّل حسب نظامك
-                'total_amount' => $amount,       // = amount + tax_value
+                'tax_value'    => 0,             // نسبة الضريبة المئوية (0-100)
+                'total_amount' => $amount,       // = amount + (amount * tax_value / 100)
                 'notes'        => $notes,
             ]);
 

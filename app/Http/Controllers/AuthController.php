@@ -17,7 +17,7 @@ class AuthController extends Controller
     {
 
         if (Auth::check()) {
-            return redirect()->route('home');
+            return redirect()->intended(route('home'));
         } else {
             return view('Auth.login');
         }
@@ -31,7 +31,7 @@ class AuthController extends Controller
         $credentials = $request->only('phone', 'password');
 
         if (Auth::attempt($credentials)) {
-            return redirect()->route('home')
+            return redirect()->intended(route('home'))
                 ->with('success', 'Signed in');
         }
         return redirect()->back()->with('error', 'Phone number or password is incorrect');
@@ -39,7 +39,7 @@ class AuthController extends Controller
     public function register()
     {
         if (Auth::check()) {
-            return redirect()->route('home');
+            return redirect()->intended(route('home'));
         } else {
             return view('dashboard.Auth.register');
         }

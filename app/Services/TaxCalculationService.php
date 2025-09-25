@@ -108,6 +108,7 @@ class TaxCalculationService
 
     /**
      * حساب الضرائب بناءً على فترات مختلفة
+     * يستخدم آخر فترة فعالة لحساب الضريبة
      */
     public function calculateTaxWithPeriods($officeId, $amount, $startDate, $endDate)
     {
@@ -124,32 +125,37 @@ class TaxCalculationService
             ];
         }
 
-        $totalTaxAmount = 0;
+        // استخدام آخر فترة فعالة لحساب الضريبة
+        $activePeriod = $taxPeriods->last();
+        $taxAmount = 0;
+        $taxRate = 0;
+
+        if ($activePeriod && $activePeriod->tax_enabled) {
+            $taxRate = $activePeriod->tax_rate ?? self::DEFAULT_TAX_RATE;
+            $taxAmount = ($amount * $taxRate) / 100;
+        }
+
+        // إعداد تفاصيل الفترات للعرض
         $periods = [];
-
         foreach ($taxPeriods as $period) {
-            if ($period->tax_enabled) {
-                $taxRate = $period->tax_rate ?? self::DEFAULT_TAX_RATE;
-                $taxAmount = ($amount * $taxRate) / 100;
-                $totalTaxAmount += $taxAmount;
-
-                $periods[] = [
-                    'period' => $period,
-                    'tax_rate' => $taxRate,
-                    'tax_amount' => $taxAmount,
-                    'effective_from' => $period->effective_from,
-                    'effective_to' => $period->effective_to
-                ];
-            }
+            $periods[] = [
+                'period' => $period,
+                'tax_rate' => $period->tax_rate ?? self::DEFAULT_TAX_RATE,
+                'tax_amount' => $period->tax_enabled ? ($amount * ($period->tax_rate ?? self::DEFAULT_TAX_RATE)) / 100 : 0,
+                'effective_from' => $period->effective_from,
+                'effective_to' => $period->effective_to,
+                'is_active' => $period->id === $activePeriod->id
+            ];
         }
 
         return [
             'original_amount' => $amount,
-            'tax_amount' => $totalTaxAmount,
-            'total_amount' => $amount + $totalTaxAmount,
-            'tax_rate' => $totalTaxAmount > 0 ? self::DEFAULT_TAX_RATE : 0,
-            'tax_enabled' => $totalTaxAmount > 0,
-            'periods' => $periods
+            'tax_amount' => $taxAmount,
+            'total_amount' => $amount + $taxAmount,
+            'tax_rate' => $taxRate,
+            'tax_enabled' => $taxAmount > 0,
+            'periods' => $periods,
+            'active_period' => $activePeriod
         ];
     }
 

@@ -75,6 +75,9 @@ class UserController extends Controller
         $data = $request->except('password', 'avatar');
         $data['password'] = Hash::make($request->password);
 
+        // تعيين قيمة افتراضية للراتب إذا كان فارغاً
+        $data['salary'] = $request->salary ?? 0;
+
         if ($request->hasFile('avatar')) {
             $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
         }

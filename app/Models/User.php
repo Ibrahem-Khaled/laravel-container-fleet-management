@@ -51,7 +51,19 @@ class User extends Authenticatable implements AuditableContract
         return [
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
+            'salary'            => 'decimal:2',
         ];
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+            if (is_null($user->salary)) {
+                $user->salary = 0;
+            }
+        });
     }
 
     public function dailyTransactions(): MorphMany

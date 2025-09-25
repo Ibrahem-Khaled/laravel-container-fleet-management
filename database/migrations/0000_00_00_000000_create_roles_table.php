@@ -57,16 +57,6 @@ return new class extends Migration
                 'description' => 'محاسب',
                 'created_at' => now(),
             ],
-            [
-                'name' => 'super_admin',
-                'description' => 'مشرف عام',
-                'created_at' => now(),
-            ],
-            [
-                'name' => 'finance_manager',
-                'description' => 'مدير مالي',
-                'created_at' => now(),
-            ],
 
         ]);
     }

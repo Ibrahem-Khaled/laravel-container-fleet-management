@@ -287,6 +287,10 @@ class TaxController extends Controller
                         'transactions_count' => $group->count(),
                         'total_base_amount' => $group->sum('amount'),
                         'total_tax_amount' => $group->sum(function ($transaction) {
+                            // حساب الضريبة الفعلية من المبلغ الأساسي والنسبة
+                            if ($transaction->tax_value > 0) {
+                                return ($transaction->amount * $transaction->tax_value) / 100;
+                            }
                             return $transaction->total_amount - $transaction->amount;
                         }),
                         'total_amount' => $group->sum('total_amount'),
@@ -302,6 +306,10 @@ class TaxController extends Controller
                     'month_number' => $currentDate->month,
                     'grouped_transactions' => $groupedTransactions,
                     'month_total_tax' => $monthTransactions->sum(function ($transaction) {
+                        // حساب الضريبة الفعلية من المبلغ الأساسي والنسبة
+                        if ($transaction->tax_value > 0) {
+                            return ($transaction->amount * $transaction->tax_value) / 100;
+                        }
                         return $transaction->total_amount - $transaction->amount;
                     }),
                     'month_total_amount' => $monthTransactions->sum('total_amount'),
@@ -315,6 +323,10 @@ class TaxController extends Controller
         return [
             'monthly_data' => $monthlyTransactions,
             'total_tax_amount' => $transactions->sum(function ($transaction) {
+                // حساب الضريبة الفعلية من المبلغ الأساسي والنسبة
+                if ($transaction->tax_value > 0) {
+                    return ($transaction->amount * $transaction->tax_value) / 100;
+                }
                 return $transaction->total_amount - $transaction->amount;
             }),
             'total_transactions_count' => $transactions->count()
@@ -407,6 +419,10 @@ class TaxController extends Controller
             'total_transactions' => $transactions->count(),
             'total_base_amount' => $transactions->sum('amount'),
             'total_tax_amount' => $transactions->sum(function ($transaction) {
+                // حساب الضريبة الفعلية من المبلغ الأساسي والنسبة
+                if ($transaction->tax_value > 0) {
+                    return ($transaction->amount * $transaction->tax_value) / 100;
+                }
                 return $transaction->total_amount - $transaction->amount;
             }),
             'total_amount' => $transactions->sum('total_amount'),

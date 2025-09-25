@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LogsController;
+use App\Http\Controllers\system\AlhamdulillahController;
 use App\Http\Controllers\system\CarChangeOilsController;
 use App\Http\Controllers\system\CarController;
 use App\Http\Controllers\system\ClearanceOfficeController;
+use App\Http\Controllers\system\ClientFinancialReportController;
 use App\Http\Controllers\system\CompanyFinanceController;
 use App\Http\Controllers\system\ContainerFlowController;
 use App\Http\Controllers\system\ContainerTransfersController;
@@ -92,6 +94,12 @@ Route::group(['prefix' => 'system', 'middleware' => ['auth']], function () {
     // حسابات الشركة
     Route::get('/company/finance', [CompanyFinanceController::class, 'index'])->name('company.finance');
 
+    // التقارير المالية للعملاء
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/client-financial', [ClientFinancialReportController::class, 'index'])->name('client-financial');
+        Route::get('/client-financial/export', [ClientFinancialReportController::class, 'export'])->name('client-financial.export');
+    });
+
     // الشركاء
     Route::get('/partners', [PartnerProfitController::class, 'index'])->name('partners.index');
     Route::post('/partners', [PartnerProfitController::class, 'store'])->name('partners.store');
@@ -138,6 +146,15 @@ Route::get('/containers/lookup', [ContainerTransfersController::class, 'lookup']
 
 Route::get('/containers/{container}/transfer-summary', [ContainerTransfersController::class, 'summary'])
     ->name('containers.transfer_summary'); // ملخص الأوامر لحاوية
+
+// الحمد لله
+Route::prefix('alhamdulillah')->name('alhamdulillah.')->group(function () {
+    Route::get('/', [AlhamdulillahController::class, 'index'])->name('index');
+    Route::post('/authenticate', [AlhamdulillahController::class, 'authenticate'])->name('authenticate');
+    Route::post('/logout', [AlhamdulillahController::class, 'logout'])->name('logout');
+    Route::post('/setup-expense', [AlhamdulillahController::class, 'setupExpense'])->name('setup-expense');
+    Route::get('/details', [AlhamdulillahController::class, 'details'])->name('details');
+});
 
 Route::post('/containers/transfer-orders', [ContainerTransfersController::class, 'store'])
     ->name('containers.transfer_orders.store'); // إنشاء أمر نقل

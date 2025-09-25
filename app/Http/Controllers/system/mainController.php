@@ -23,7 +23,7 @@ class mainController extends Controller
             ->selectRaw("
                 SUM(CASE WHEN type = 'income'  THEN total_amount ELSE 0 END) as total_income,
                 SUM(CASE WHEN type = 'expense' THEN total_amount ELSE 0 END) as total_expense,
-                SUM(tax_value) as total_tax
+                SUM(CASE WHEN tax_value > 0 THEN (amount * tax_value / 100) ELSE 0 END) as total_tax
             ")
             ->first();
 

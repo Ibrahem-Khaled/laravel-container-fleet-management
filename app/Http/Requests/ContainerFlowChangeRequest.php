@@ -21,10 +21,10 @@ class ContainerFlowChangeRequest extends FormRequest
         // خريطة الانتقالات المسموح بها
         $allowedTransitions = [
             'wait'      => ['transport'],
-            'transport' => ['storage', 'done'],
-            'storage'   => ['wait'],
-            'done'      => ['wait'],
-            'rent'      => ['wait'], // إن وُجدت حالة الإيجار
+            'transport' => ['storage', 'done', 'wait'], // إضافة العودة للانتظار
+            'storage'   => ['wait', 'transport'], // إضافة العودة للانتظار
+            'done'      => ['wait', 'rent'], // إضافة العودة للانتظار
+            'rent'      => ['wait', 'storage'], // إضافة العودة للانتظار
         ];
         $allowed = $allowedTransitions[$current] ?? ['transport'];
 

@@ -16,10 +16,22 @@ class CompanyFinanceReportService
         $totalExpense      = (clone $base)->where('type', 'expense')->sum('total_amount');
         $netProfit         = $totalIncome - $totalExpense;
 
-        // الضرائب: وارد/منصرف
-        $totalTaxIncome    = (clone $base)->where('type', 'income')->sum('tax_value');
-        $totalTaxExpense   = (clone $base)->where('type', 'expense')->sum('tax_value');
-        $totalTax          = $totalTaxExpense - $totalTaxIncome;
+        // الضرائب: وارد/منصرف (حساب الضرائب الفعلية من tax_value)
+        $totalTaxIncome = (clone $base)->where('type', 'income')
+            ->where('tax_value', '>', 0)
+            ->get()
+            ->sum(function ($transaction) {
+                return ($transaction->amount * $transaction->tax_value) / 100;
+            });
+
+        $totalTaxExpense = (clone $base)->where('type', 'expense')
+            ->where('tax_value', '>', 0)
+            ->get()
+            ->sum(function ($transaction) {
+                return ($transaction->amount * $transaction->tax_value) / 100;
+            });
+
+        $totalTax = $totalTaxExpense - $totalTaxIncome;
 
         // تفصيل حسب الفئة (transactionable_type)
         $byCategory = (clone $base)
@@ -50,29 +62,55 @@ class CompanyFinanceReportService
         // تجميع شهري للوارد (المبلغ والضريبة)
         $rowsIncome = (clone $base)
             ->where('type', 'income')
-            ->selectRaw('MONTH(created_at) as m, SUM(total_amount) as amt, SUM(tax_value) as tax')
+            ->selectRaw('MONTH(created_at) as m, SUM(total_amount) as amt, SUM(amount) as base_amt')
             ->groupBy('m')
             ->orderBy('m')
             ->get();
 
         foreach ($rowsIncome as $r) {
             $m = (int)$r->m;
-            $monthlyIncome[$m]    = (float)$r->amt;
-            $monthlyTaxIncome[$m] = (float)$r->tax;
+            $monthlyIncome[$m] = (float)$r->amt;
+        }
+
+        // حساب الضرائب الشهرية للوارد من المعاملات الفعلية
+        $monthlyTaxIncomeData = (clone $base)
+            ->where('type', 'income')
+            ->where('tax_value', '>', 0)
+            ->selectRaw('MONTH(created_at) as m, SUM((amount * tax_value) / 100) as tax_amt')
+            ->groupBy('m')
+            ->orderBy('m')
+            ->get();
+
+        foreach ($monthlyTaxIncomeData as $r) {
+            $m = (int)$r->m;
+            $monthlyTaxIncome[$m] = (float)$r->tax_amt;
         }
 
         // تجميع شهري للمنصرف (المبلغ والضريبة)
         $rowsExpense = (clone $base)
             ->where('type', 'expense')
-            ->selectRaw('MONTH(created_at) as m, SUM(total_amount) as amt, SUM(tax_value) as tax')
+            ->selectRaw('MONTH(created_at) as m, SUM(total_amount) as amt, SUM(amount) as base_amt')
             ->groupBy('m')
             ->orderBy('m')
             ->get();
 
         foreach ($rowsExpense as $r) {
             $m = (int)$r->m;
-            $monthlyExpense[$m]    = (float)$r->amt;
-            $monthlyTaxExpense[$m] = (float)$r->tax;
+            $monthlyExpense[$m] = (float)$r->amt;
+        }
+
+        // حساب الضرائب الشهرية للمنصرف من المعاملات الفعلية
+        $monthlyTaxExpenseData = (clone $base)
+            ->where('type', 'expense')
+            ->where('tax_value', '>', 0)
+            ->selectRaw('MONTH(created_at) as m, SUM((amount * tax_value) / 100) as tax_amt')
+            ->groupBy('m')
+            ->orderBy('m')
+            ->get();
+
+        foreach ($monthlyTaxExpenseData as $r) {
+            $m = (int)$r->m;
+            $monthlyTaxExpense[$m] = (float)$r->tax_amt;
         }
 
         // احسب الصافي الشهري + الصافي التراكمي المترحِّل

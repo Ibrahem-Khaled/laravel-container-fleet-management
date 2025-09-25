@@ -11,6 +11,7 @@ use App\Services\MonthlyNetProfitService;
 use App\Services\ProfitDistributionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class PartnerProfitController extends Controller
@@ -36,6 +37,18 @@ class PartnerProfitController extends Controller
                             ->orWhere('email', 'like', "%{$s}%");
                     });
             });
+        }
+
+        // فلترة حسب الحالة
+        if ($request->filled('filter')) {
+            switch ($request->filter) {
+                case 'active':
+                    $q->where('is_active', true);
+                    break;
+                case 'inactive':
+                    $q->where('is_active', false);
+                    break;
+            }
         }
 
         $partners = $q->paginate(12);
@@ -128,7 +141,7 @@ class PartnerProfitController extends Controller
     // إضافة نفسي كشريك (لو role=partner ولم يُضف من قبل)
     public function attachMe()
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         // لازم رول partner عبر العلاقة
         if (!$user || !$user->role || $user->role->name !== 'partner') {
@@ -153,7 +166,7 @@ class PartnerProfitController extends Controller
      | 2) حركات رأس المال
      *========================*/
 
-    public function movementsIndex(Partner $partner)
+    public function movementsIndex(Partner $partner, Request $request)
     {
         $movements = $partner->movements()
             ->orderBy('occurred_at', 'desc')
@@ -161,7 +174,12 @@ class PartnerProfitController extends Controller
 
         $currentBalance = $partner->currentBalance();
 
-        return view('dashboard.company.movements', compact('partner', 'movements', 'currentBalance'));
+        // جلب بيانات حدود السحب والأرباح المتاحة
+        $year = $request->get('year', now()->year);
+        $month = $request->get('month', now()->month);
+        $withdrawalLimits = $partner->getWithdrawalLimits($year, $month);
+
+        return view('dashboard.company.movements', compact('partner', 'movements', 'currentBalance', 'withdrawalLimits', 'year', 'month'));
     }
 
     public function movementsStore(Request $request, Partner $partner)
@@ -173,6 +191,28 @@ class PartnerProfitController extends Controller
             'notes'       => 'nullable|string|max:500',
         ]);
 
+        // التحقق من حدود السحب إذا كانت الحركة سحب
+        if ($data['type'] === 'withdrawal') {
+            $year = $request->get('year', now()->year);
+            $month = $request->get('month', now()->month);
+            $withdrawalLimits = $partner->getWithdrawalLimits($year, $month);
+
+            // التحقق من عدم تجاوز الحد الأقصى للسحب
+            if ($data['amount'] > $withdrawalLimits['max_total_withdrawal']) {
+                return back()->withErrors([
+                    'amount' => 'المبلغ المطلوب سحب (' . number_format($data['amount'], 2) . ' ر.س) يتجاوز الحد الأقصى المسموح (' . number_format($withdrawalLimits['max_total_withdrawal'], 2) . ' ر.س)'
+                ])->withInput();
+            }
+
+            // إضافة تحذير إذا كان السحب من رأس المال
+            if ($data['amount'] > $withdrawalLimits['max_profit_withdrawal']) {
+                $warningMessage = 'تحذير: المبلغ المطلوب سحب (' . number_format($data['amount'], 2) . ' ر.س) يتجاوز أرباحك المتاحة (' . number_format($withdrawalLimits['max_profit_withdrawal'], 2) . ' ر.س). سيتم السحب من رأس المال مما قد يؤثر على حصتك في الأرباح المستقبلية.';
+
+                // إضافة التحذير للملاحظات
+                $data['notes'] = ($data['notes'] ? $data['notes'] . "\n\n" : '') . "⚠️ " . $warningMessage;
+            }
+        }
+
         DB::transaction(function () use ($partner, $data) {
             PartnerCapitalMovement::create([
                 'partner_id'  => $partner->id,
@@ -183,7 +223,12 @@ class PartnerProfitController extends Controller
             ]);
         });
 
-        return back()->with('success', 'تم تسجيل الحركة بنجاح.');
+        $successMessage = 'تم تسجيل الحركة بنجاح.';
+        if ($data['type'] === 'withdrawal' && isset($warningMessage)) {
+            $successMessage .= ' ' . $warningMessage;
+        }
+
+        return back()->with('success', $successMessage);
     }
 
     public function movementsDestroy(Partner $partner, PartnerCapitalMovement $movement)

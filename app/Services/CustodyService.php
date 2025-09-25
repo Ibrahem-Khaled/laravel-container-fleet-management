@@ -3,6 +3,7 @@ namespace App\Services;
 
 use App\Models\{CustodyAccount, DailyTransaction, CustodyLedgerEntry};
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class CustodyService
 {
@@ -18,7 +19,12 @@ class CustodyService
         return DB::transaction(function () use ($account, $dailyData, $mirrorToLedger) {
             // فرض الربط بالعهدة
             $dailyData['custody_account_id'] = $account->id;
-            $dailyData['total_amount'] = ($dailyData['amount'] ?? 0) + ($dailyData['tax_value'] ?? 0);
+
+            // حساب الضريبة من المبلغ الأساسي إذا كانت النسبة أكبر من 0
+            $taxPercentage = $dailyData['tax_value'] ?? 0;
+            $baseAmount = $dailyData['amount'] ?? 0;
+            $taxAmount = $taxPercentage > 0 ? ($baseAmount * $taxPercentage) / 100 : 0;
+            $dailyData['total_amount'] = $baseAmount + $taxAmount;
 
             /** @var DailyTransaction $daily */
             $daily = DailyTransaction::create($dailyData);
@@ -33,7 +39,7 @@ class CustodyService
                     'amount' => $daily->total_amount,
                     'currency' => $dailyData['currency'] ?? null,
                     'occurred_at' => now(),
-                    'created_by' => auth()->id(),
+                    'created_by' => Auth::id(),
                     'notes' => $daily->notes,
                 ]);
             }
@@ -45,7 +51,12 @@ class CustodyService
     public function updateDailyAndLedger(DailyTransaction $daily, array $data, bool $syncLedger = true): DailyTransaction
     {
         return DB::transaction(function () use ($daily, $data, $syncLedger) {
-            $data['total_amount'] = ($data['amount'] ?? $daily->amount) + ($data['tax_value'] ?? $daily->tax_value);
+            // حساب الضريبة من المبلغ الأساسي إذا كانت النسبة أكبر من 0
+            $taxPercentage = $data['tax_value'] ?? $daily->tax_value;
+            $baseAmount = $data['amount'] ?? $daily->amount;
+            $taxAmount = $taxPercentage > 0 ? ($baseAmount * $taxPercentage) / 100 : 0;
+            $data['total_amount'] = $baseAmount + $taxAmount;
+
             $daily->update($data);
 
             if ($syncLedger && $daily->custodyAccount && $daily->id) {
